@@ -1,0 +1,10 @@
+{
+	"Animals":{
+		"Do": {
+			"$ref": "Examples:Dog"
+		},
+		"Ca": {
+			"$ref": "Examples:Cat"
+		}
+	}
+}

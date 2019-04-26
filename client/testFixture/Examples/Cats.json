@@ -1,0 +1,14 @@
+{
+	"Cats": [
+		{
+			"name":"Johnny",
+			"eyes": 4,
+			"color": "BROWN"
+		},
+		{
+			"name": "Hans",
+			"eys": 3,
+			"color": "YELLOW"
+		}
+	]
+}

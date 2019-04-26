@@ -11,7 +11,8 @@
 		"postinstall": "vscode-install"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^4.1.4"
+		"vscode-languageclient": "^4.1.4",
+		"vscode-languageserver": "^5.2.1"
 	},
 	"devDependencies": {
 		"vscode": "^1.1.33"

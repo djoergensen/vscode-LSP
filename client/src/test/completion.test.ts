@@ -4,13 +4,13 @@ import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 
 describe('Should do completion', () => {
-	const docUri = getDocUri('completion.txt');
+	const docUri = getDocUri('completion.json');
 
-	it('Completes JS/TS in txt file', async () => {
+	it('Completes Cat and Dog in json file', async () => {
 		await testCompletion(docUri, new vscode.Position(0, 0), {
 			items: [
-				{ label: 'JavaScript', kind: vscode.CompletionItemKind.Text },
-				{ label: 'TypeScript', kind: vscode.CompletionItemKind.Text }
+				{ label: 'Cat', kind: vscode.CompletionItemKind.Text },
+				{ label: 'Dog', kind: vscode.CompletionItemKind.Text }
 			]
 		});
 	});

@@ -1,8 +1,8 @@
 import * as ls from "vscode-languageserver";
 import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range} from "vscode-languageserver";
-import { existsSync, readFileSync, read} from "fs";
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
+import { existsSync} from "fs";
 
 // Connect to the server
 let connection =  ls.createConnection(ls.ProposedFeatures.all);
@@ -16,11 +16,12 @@ let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability:boolean = false;
 
 let rootPath:string;
-
+let rootUri:string;
 
 
 connection.onInitialize((params: InitializeParams)=>{
     rootPath = params.rootPath;
+    rootUri = params.rootUri;
     let capabilities = params.capabilities;
     // Checks if the client supports the workspace/configuration request
     hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -120,7 +121,6 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let m: RegExpExecArray | null;
 
     let lines = text.split("\n");
-    let rootUri:string = Uri.file(rootPath).toString();
 
 
 
@@ -201,22 +201,41 @@ connection.onCompletionResolve((
 );
 
 // Handler for hover
-connection.onHover(({ textDocument, position }): ls.Hover => { 
-    let uri = textDocument.uri;
-    
-    let path:string = Uri.parse(uri).fsPath;
-    return{
-    
-        contents: position.character.toString()
-    };
+connection.onHover(({ textDocument, position }): Hover => {
+    let text:string =documents.get(textDocument.uri).getText();
+
+
+    let lines = text.split("\n");
+    let lineNumber:number = position.line;
+    let startCharNumber:number = position.character;
+    let endCharNumber:number = position.character;
+    while (lines[lineNumber][startCharNumber]!=="\"" && startCharNumber > 1){
+        startCharNumber--;
+    }
+    while (lines[lineNumber][endCharNumber]!=="\"" && endCharNumber < 180){
+        endCharNumber++;
+    }
+
+    let start = Position.create(lineNumber, startCharNumber+1);
+    let end = Position.create(lineNumber, endCharNumber);
+    let range = Range.create(start,end);
+
+
+    let relativeUri = lines[lineNumber].slice(range.start.character,range.end.character);
+
+    let properUri = relativeUri.replace(/:/g,"/");
+    let finalUri:string = rootUri+"/"+properUri+".json"; 
+
+    if (!existsSync(Uri.parse(finalUri).fsPath)){
+        return null;
+    }
+    return {contents: "Hold Ctrl to follow path"};
 });
 
 connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):ls.Definition  => {
     if(textDocumentPositionParams.position.character<=1){
         return null;
     }
-
-    let rootUri:string = Uri.file(rootPath).toString();
     let text:string =documents.get(textDocumentPositionParams.textDocument.uri).getText();
 
 
@@ -227,7 +246,7 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     while (lines[lineNumber][startCharNumber]!=="\"" && startCharNumber > 1){
         startCharNumber--;
     }
-    while (lines[lineNumber][endCharNumber]!=="\"" && endCharNumber < 100){
+    while (lines[lineNumber][endCharNumber]!=="\"" && endCharNumber < 180){
         endCharNumber++;
     }
 
