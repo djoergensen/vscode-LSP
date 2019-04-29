@@ -28,6 +28,11 @@ async function testDefinition(
 	expectedDefinitionList.forEach((expectedItem, i) => {
 		const actualItem = actualDefinitionList[i];
 		assert.equal(actualItem.uri.path, expectedItem.uri.path);
-		//assert.equal(actualItem.Position, expectedItem[0].Position);
+
+		assert.equal(actualItem.range.start.character, 12);
+		assert.equal(actualItem.range.end.character, 25);
+
+		assert.equal(actualItem.range.start.line, expectedItem.range.start.line);
+		assert.equal(actualItem.range.end.line, expectedItem.range.end.line);
 	});
 }

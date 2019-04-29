@@ -29,6 +29,11 @@ async function testHover(
 		const actualItem = actualHoverList[i];
 		assert.equal(actualItem.contents[0].value, expectedItem.contents);
 
-		assert.equal(actualItem.range.start, expectedItem.range.start);
+		assert.equal(actualItem.range.start.character, expectedItem.range.start.character);
+		assert.equal(actualItem.range.start.line, expectedItem.range.start.line);
+
+		assert.equal(actualItem.range.end.character, expectedItem.range.end.character);
+		assert.equal(actualItem.range.end.line, expectedItem.range.end.line);
+
 	});
 }
