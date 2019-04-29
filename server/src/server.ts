@@ -127,6 +127,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
     while((m = pattern.exec(text)) && settings.maxNumberOfProblems > problems){
         let lineNumber:number = textDocument.positionAt(m.index).line;
+        let line:string = lines[lineNumber];
+
 
         let len = docUri.length;
         let fileLetters = 0;
@@ -134,11 +136,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
             fileLetters++;
         }
         let folderUri = docUri.slice(0,-fileLetters);
-        let relativeUri:string = lines[lineNumber].slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
+        let relativeUri:string = line.slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
         let properUri = relativeUri.replace(/:/g,"/");
         let destinationUri:string = folderUri+"/"+properUri+".json"; 
     
-        if (!existsSync(Uri.parse(destinationUri).fsPath)){
+        if (!existsSync(Uri.parse(destinationUri).fsPath)&& line.includes("\"$ref\"")){
             problems++;
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
