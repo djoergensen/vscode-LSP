@@ -20,7 +20,7 @@
 		"vscode": "^1.32.0"
 	},
 	"activationEvents": [
-		"workspaceContains:**/Animals.json"
+		"onLanguage:json"
 	],
 	"main": "./client/out/extension",
 	"contributes": {

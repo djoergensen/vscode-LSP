@@ -28,7 +28,6 @@ connection.onInitialize((params: InitializeParams)=>{
     hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
     hasDiagnosticRelatedInformationCapability = !!(capabilities.textDocument && capabilities.textDocument.publishDiagnostics && capabilities.textDocument.publishDiagnostics.relatedInformation);
     
-
     return {
         capabilities: {
             openClose: true,
@@ -111,29 +110,35 @@ documents.onDidChangeContent(change => {
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+    let docUri = textDocument.uri;
     // Wait for the settings for the document
-    let settings = await getDocumentSettings(textDocument.uri);
+    let settings = await getDocumentSettings(docUri);
     // Look for all caps words
     let text = textDocument.getText();
 
 
-    let pattern = /([a-zA-Z]+:{1})+[a-zA-Z]*/g;
+    let pattern = /([a-zA-Z]+:{1})+[a-zA-Z]*_?[a-zA-Z]*/g;
     let m: RegExpExecArray | null;
 
     let lines = text.split("\n");
-
-
 
     let problems = 0;
     let diagnostics: Diagnostic[] = [];
 
     while((m = pattern.exec(text)) && settings.maxNumberOfProblems > problems){
         let lineNumber:number = textDocument.positionAt(m.index).line;
+
+        let len = docUri.length;
+        let fileLetters = 0;
+        while(docUri[len-fileLetters]!=="/"){
+            fileLetters++;
+        }
+        let folderUri = docUri.slice(0,-fileLetters);
         let relativeUri:string = lines[lineNumber].slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
         let properUri = relativeUri.replace(/:/g,"/");
-        let validUri:string = rootUri+"/"+properUri+".json"; 
+        let destinationUri:string = folderUri+"/"+properUri+".json"; 
     
-        if (!existsSync(Uri.parse(validUri).fsPath)){
+        if (!existsSync(Uri.parse(destinationUri).fsPath)){
             problems++;
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
@@ -204,7 +209,7 @@ connection.onCompletionResolve((
 connection.onHover(({ textDocument, position }): Hover => {
     let text:string =documents.get(textDocument.uri).getText();
 
-
+    console.error("ASDHASODHASLDH");
     let lines = text.split("\n");
     let lineNumber:number = position.line;
     let startCharNumber:number = position.character;
@@ -220,18 +225,26 @@ connection.onHover(({ textDocument, position }): Hover => {
     let end = Position.create(lineNumber, endCharNumber);
     let range = Range.create(start,end);
 
+    let docUri = textDocument.uri;
+
+    let len = docUri.length;
+    let fileLetters = 0;
+    while(docUri[len-fileLetters]!=="/"){
+        fileLetters++;
+    }
+    let folderUri = docUri.slice(0,-fileLetters);
 
     let relativeUri = lines[lineNumber].slice(range.start.character,range.end.character);
-
     let properUri = relativeUri.replace(/:/g,"/");
-    let finalUri:string = rootUri+"/"+properUri+".json"; 
+    let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    if (!existsSync(Uri.parse(finalUri).fsPath)){
+    if (!existsSync(Uri.parse(destinationUri).fsPath)){
         return null;
     }
     return {contents: "Hold Ctrl to follow path"};
 });
 
+// Handler for definition request
 connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):ls.Definition  => {
     if(textDocumentPositionParams.position.character<=1){
         return null;
@@ -254,16 +267,23 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     let end = Position.create(lineNumber, endCharNumber);
     let range = Range.create(start,end);
 
+    let docUri = textDocumentPositionParams.textDocument.uri;
 
-    let relativeUri = lines[lineNumber].slice(range.start.character,range.end.character);
+    let len = docUri.length;
+    let fileLetters = 0;
+    while(docUri[len-fileLetters]!=="/"){
+        fileLetters++;
+    }
 
-    let properUri = relativeUri.replace(/:/g,"/");
-    let finalUri:string = rootUri+"/"+properUri+".json"; 
+    let folderUri = docUri.slice(0,-fileLetters);
+    let fileUri = lines[lineNumber].slice(range.start.character,range.end.character);
+    let properUri =fileUri.replace(/:/g,"/");
+    let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    if (!existsSync(Uri.parse(finalUri).fsPath)){
+    if (!existsSync(Uri.parse(destinationUri).fsPath)){
         return null;
     }
-    return Location.create(finalUri,range);
+    return Location.create(destinationUri,range);
 });
 
 
