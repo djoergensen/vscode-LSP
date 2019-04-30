@@ -1,5 +1,6 @@
-out
-node_modules
-client/server
+out/
+node_modules/
 .vscode-test
 .vsix
+p4ignore.txt
+
