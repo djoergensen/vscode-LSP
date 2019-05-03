@@ -6,6 +6,7 @@ pipeline {
             steps {
                 bat 'npm install'
                 bat 'npm run compile'
+                bat 'npm run test'
             }
         }
     }
