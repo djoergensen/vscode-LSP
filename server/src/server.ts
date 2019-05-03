@@ -16,12 +16,8 @@ let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability:boolean = false;
 
-let rootPath:string;
-let rootUri:string;
 
 connection.onInitialize((params: InitializeParams)=>{
-    rootPath = params.rootPath;
-    rootUri = params.rootUri;
     let capabilities = params.capabilities;
     // Checks if the client supports the workspace/configuration request
     hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
@@ -112,7 +108,6 @@ documents.onDidChangeContent(change => {
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     // Wait for the settings for the document
     let settings = await getDocumentSettings(textDocument.uri);
-    // Look for all caps words
     let text = textDocument.getText();
 
 
