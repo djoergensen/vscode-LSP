@@ -20,23 +20,10 @@
 		"vscode": "^1.32.0"
 	},
 	"activationEvents": [
-		"onLanguage:json"
+		"workspaceContains:**/application.json"
 	],
 	"main": "./client/out/extension",
 	"contributes": {
-		"commands": [
-			{
-				"command": "extension.lsp",
-				"title": "Test Command"
-			}
-		],
-		"menus": {
-			"editor/context": [
-				{
-					"command": "extension.lsp"
-				}
-			]
-		},
 		"configuration": {
 			"type": "object",
 			"title": "Example configuration",

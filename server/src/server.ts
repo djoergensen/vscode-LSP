@@ -3,6 +3,7 @@ import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
 import { existsSync} from "fs";
+import * as path from "path";
 
 // Connect to the server
 let connection =  ls.createConnection(ls.ProposedFeatures.all);
@@ -17,7 +18,6 @@ let hasDiagnosticRelatedInformationCapability:boolean = false;
 
 let rootPath:string;
 let rootUri:string;
-
 
 connection.onInitialize((params: InitializeParams)=>{
     rootPath = params.rootPath;
@@ -140,8 +140,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         let relativeUri:string = line.slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
         let properUri = relativeUri.replace(/:/g,"/");
         let destinationUri:string = folderUri+"/"+properUri+".json"; 
-    
-        if (!existsSync(Uri.parse(destinationUri).fsPath)&& line.includes("\"$ref\"")){
+        
+        let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
+        if (!existsSync(normalPath)&& line.includes("\"$ref\"")){
             problems++;
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
@@ -240,10 +241,12 @@ connection.onHover(({ textDocument, position }): Hover => {
     let properUri = relativeUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    if (!existsSync(Uri.parse(destinationUri).fsPath)){
+    let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
+
+    if (!existsSync(normalPath)){
         return null;
     }
-    return {contents: "Hold Ctrl to follow path"};
+    return {contents: "Ctrl + click to follow path"};
 });
 
 // Handler for definition request
@@ -282,7 +285,8 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     let properUri =fileUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    if (!existsSync(Uri.parse(destinationUri).fsPath)){
+    let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
+    if (!existsSync(Uri.parse(normalPath).fsPath)){
         return null;
     }
     return Location.create(destinationUri,range);

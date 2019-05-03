@@ -1,4 +1,4 @@
-import {ExtensionContext, workspace, commands, window} from 'vscode';
+import {ExtensionContext, workspace, window} from 'vscode';
 import {join} from "path";
 import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
 
@@ -7,6 +7,10 @@ let client : LanguageClient;
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
+
+	let workSpaceFolder = workspace.getWorkspaceFolder;
+
+
 
 	let serverModule = context.asAbsolutePath(
 		join("server", "out", "server.js")
@@ -31,7 +35,8 @@ export function activate(context: ExtensionContext) {
 		}
 	};
 
-	
+
+
 	client = new LanguageClient(
 		"languageServer",
 		"Language Server",
@@ -39,13 +44,6 @@ export function activate(context: ExtensionContext) {
 		clientOptions
 	);
 	client.start();
-	//Register command
-	let disposable = commands.registerCommand('extension.lsp', () => {
-
-		window.showInformationMessage('Hello World!');
-	});
-
-	context.subscriptions.push(disposable);
 }
 // Called when extension 
 export function deactivate(): Thenable<void> {
