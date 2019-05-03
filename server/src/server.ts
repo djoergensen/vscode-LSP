@@ -110,14 +110,13 @@ documents.onDidChangeContent(change => {
 });
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-    let docUri = textDocument.uri;
     // Wait for the settings for the document
-    let settings = await getDocumentSettings(docUri);
+    let settings = await getDocumentSettings(textDocument.uri);
     // Look for all caps words
     let text = textDocument.getText();
 
 
-    let pattern = /([a-zA-Z]+:{1})+[a-zA-Z]*_?[a-zA-Z]*/g;
+    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
     let m: RegExpExecArray | null;
 
     let lines = text.split("\n");
@@ -126,6 +125,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let diagnostics: Diagnostic[] = [];
 
     while((m = pattern.exec(text)) && settings.maxNumberOfProblems > problems){
+        let docUri = textDocument.uri;
+
         let lineNumber:number = textDocument.positionAt(m.index).line;
         let line:string = lines[lineNumber];
 
@@ -211,7 +212,6 @@ connection.onCompletionResolve((
 connection.onHover(({ textDocument, position }): Hover => {
     let text:string =documents.get(textDocument.uri).getText();
 
-    console.error("ASDHASODHASLDH");
     let lines = text.split("\n");
     let lineNumber:number = position.line;
     let startCharNumber:number = position.character;
