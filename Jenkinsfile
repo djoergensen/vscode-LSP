@@ -6,7 +6,7 @@ pipeline {
             steps {
                 bat 'npm install'
                 bat 'npm run compile'
-                bat 'npm run test'
+                bat 'node node_modules/vscode/bin/test'
             }
         }
     }
