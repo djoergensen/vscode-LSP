@@ -1,4 +1,4 @@
-import {ExtensionContext, workspace, window} from 'vscode';
+import {ExtensionContext, workspace} from 'vscode';
 import {join} from "path";
 import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
 
@@ -10,14 +10,11 @@ export function activate(context: ExtensionContext) {
 
 	let workSpaceFolder = workspace.getWorkspaceFolder;
 
-
-
 	let serverModule = context.asAbsolutePath(
 		join("server", "out", "server.js")
 	);
 
 	let debugOptions = {execArgv:["--nolazy", "--inspect=6009"]};
-
 
 	let serverOptions: ServerOptions = {
 		run: {module: serverModule, transport: TransportKind.ipc},
@@ -35,8 +32,6 @@ export function activate(context: ExtensionContext) {
 		}
 	};
 
-
-
 	client = new LanguageClient(
 		"languageServer",
 		"Language Server",
@@ -45,7 +40,7 @@ export function activate(context: ExtensionContext) {
 	);
 	client.start();
 }
-// Called when extension 
+// Called when extension is closed
 export function deactivate(): Thenable<void> {
 	if (!client) {
 	  return undefined;

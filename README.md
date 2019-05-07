@@ -17,7 +17,7 @@ Only prerequisite for using the extension is Visual Studio Code
 
 For development having node and npm installed is a requirement. This can be downloaded through nvm(Node Version Manager), which is prefered as the repository provides a .nvmrc. Nvm are available for macOS via Homebrew and Windows via Chocolatey.
 
-After installing npm, use it to install typescript with
+After installing npm, use it to install typescript globally
 ```
 npm install -g typescript
 ```
