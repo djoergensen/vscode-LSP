@@ -53,11 +53,12 @@
 		"compile": "tsc -b",
 		"watch": "tsc -b -w",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-		"test": "node $(pwd)/client/node_modules/vscode/bin/test"
+		"test": "node ./client/node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.6",
 		"@types/node": "^8.10.46",
+		"chai": "^4.2.0",
 		"tslint": "^5.16.0",
 		"typescript": "^3.4.5"
 	}

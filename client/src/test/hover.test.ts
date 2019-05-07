@@ -6,7 +6,7 @@ describe('Should provide hovers', () => {
 	const docUri = getDocUri('hover.json');
 	it('Hovers no path or instruction', async () => {
 	
-		await testHover(docUri, new vscode.Position(6, 23), [{contents: "Hold Ctrl to follow path", range:{start:{line: 6, character: 11}, end:{line:6,character:26}}}]
+		await testHover(docUri, new vscode.Position(6, 23), [{contents: "Ctrl + click to follow path", range:{start:{line: 6, character: 11}, end:{line:6,character:26}}}]
 		);
 	});
 });
