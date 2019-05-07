@@ -10,7 +10,7 @@ Once you open a .json file in the folder, the extionsion will provide diagnostic
 Vscode-LSP also provides quick navigation throughout the directories of iAccess.
 If a path exists, you can use Ctrl + click to open the referenced file, or right click and use "goto definition".
 
-![](lsp.gif)
+![](extension.gif)
 
 ### Prerequisites
 Only prerequisite for using the extension is Visual Studio Code

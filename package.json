@@ -12,6 +12,7 @@
 		"json LSP",
 		"Deltek"
 	],
+	"icon": "images/lsp.png",
 	"categories": [
 		"Other",
 		"Linters"
