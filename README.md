@@ -15,7 +15,7 @@ If a path exists, you can use Ctrl + click to open the referenced file, or right
 ### Prerequisites
 Only prerequisite for using the extension is Visual Studio Code
 
-For development having node and npm installed is a requirement. This can be downloaded through nvm(Node Version Manager), which is prefered as the repository provides a .nvmrc.
+For development having node and npm installed is a requirement. This can be downloaded through nvm(Node Version Manager), which is prefered as the repository provides a .nvmrc. Nvm are available for macOS via Homebrew and Windows via Chocolatey.
 
 After installing npm, use it to install typescript with
 ```
@@ -24,7 +24,7 @@ npm install -g typescript
 
 ### Development
 
-First download the source from github
+Download the source from github
 
 ```
 git clone https://github.com/Johanpdrsn/vscode-LSP
@@ -52,6 +52,10 @@ The tests in the client/src/test folder, are end-2-end test using the mocha fram
 ## Deployment
 
 Deployment to the Visual Studio Marketplace is done with the vsce tool. Integration with Jenkins is on the roadmap.
+
+## Contributing
+
+Bugs and feature requests can be reported in the [Gitub Issues](https://github.com/Johanpdrsn/vscode-LSP/issues).
 
 
 ## Versioning
