@@ -28,6 +28,7 @@
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
 			"args": [
+				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/client/out/test",
 				"${workspaceFolder}/client/testFixture"
@@ -35,7 +36,7 @@
 			"outFiles": ["${workspaceFolder}/client/out/test/**/*.js"],
 			"preLaunchTask": {
 				"type": "npm",
-				"script": "compile"
+				"script": "watch"
 			}
 		}
 	],

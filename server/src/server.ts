@@ -78,7 +78,7 @@ connection.onDidChangeConfiguration(change => {
     documents.all().forEach(validateTextDocument);
 });
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+export function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
     if (!hasConfigurationCapability){
         return Promise.resolve(globalSettings);
     }
