@@ -4,6 +4,9 @@ import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Dia
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
 import { existsSync} from "fs";
 import * as path from "path";
+import {buildApplicationSource, validate} from "./build";
+
+
 
 // Connect to the server
 let connection =  ls.createConnection(ls.ProposedFeatures.all);
@@ -109,6 +112,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     // Wait for the settings for the document
     let settings = await getDocumentSettings(textDocument.uri);
     let text = textDocument.getText();
+    let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
+
+    if(existsSync(docDir)){
+        let application = buildApplicationSource(docDir);
+        validate(application, docDir);
+    }
 
 
     let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
