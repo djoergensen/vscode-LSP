@@ -2,10 +2,12 @@ import * as ls from "vscode-languageserver";
 import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
-import { existsSync} from "fs";
+import { existsSync, readFileSync} from "fs";
 import * as path from "path";
-import {buildApplicationSource, validate} from "./build";
-
+import {buildApplicationSource, loadSchema, showProps} from "./build";
+const chalk = require("chalk");
+const log = require('fancy-log');
+const Ajv = require('Ajv');
 
 
 // Connect to the server
@@ -96,17 +98,26 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
     return result;
 }
 
+
 // Only keep settings for open documents
 documents.onDidClose(e => {
     documentSettings.delete(e.document.uri);
 });
 
+documents.onDidSave(doc => {
+    validateTextDocument(doc.document);
+});
+
+documents.onDidOpen(doc =>{
+    validateTextDocument(doc.document);
+});
 
 // A change in the content of a document has occurred. This is allso called
 // when the documents is first opened
-documents.onDidChangeContent(change => {
+/*documents.onDidChangeContent(change => {
     validateTextDocument(change.document);
 });
+*/
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     // Wait for the settings for the document
@@ -114,14 +125,70 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let text = textDocument.getText();
     let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
 
-    if(existsSync(docDir)){
-        let application = buildApplicationSource(docDir);
-        validate(application, docDir);
+    if(!existsSync(docDir)){
+        return null;
     }
+    let application = buildApplicationSource(docDir)[0];
+    let topPath = buildApplicationSource(docDir)[1];
+    let diagnostics: Diagnostic[] = [];
 
+    const ajv = new Ajv({allErrors: true, verbose: true});
+    const validator = ajv.compile(loadSchema(docDir));
+    const validation = validator(application);
+    if (validation === true) {
+        log(chalk.green('Application conforms to the schema'));
+    } else {
+        log(`There were ${chalk.red('errors')} validating the application against the schema:`);
+        // pretty printing the error object
+        for (const err of validator.errors) {
+            log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
+            let fileList = err.dataPath.split(/[ \s.\'\[\]]+/);
 
-    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
-    let m: RegExpExecArray | null;
+            let error_values = application;
+            for(let i = 1; i<fileList.length-1;i++){
+                error_values = error_values[fileList[i]];
+            }
+
+            if (fileList[1]==="authentication" || fileList[1]==="platform" || fileList[1]==="shell"){
+                let diagnosticPath = path.join(topPath,fileList[1],fileList[3])+".json";
+                let diagnosticUri = Uri.file(diagnosticPath);
+
+                let props  = showProps(err.params);
+                let pattern = new RegExp("\""+props[1]+"\"");
+                let text = readFileSync(diagnosticPath, "utf8");
+                let m: RegExpExecArray | null = pattern.exec(text);
+                
+                let diagnostic: Diagnostic = {
+                    severity: DiagnosticSeverity.Warning,
+                    range:{
+                        start: textDocument.positionAt(m.index),
+                        end: textDocument.positionAt(m.index + m[0].length)
+                    },
+                    message: err.message,
+                    source: "ex"
+                };
+                if (hasDiagnosticRelatedInformationCapability){
+                    diagnostic.relatedInformation = [
+                        {
+                            location: {
+                                uri: diagnosticUri.toString(),
+                                range: Object.assign({}, diagnostic.range)
+                            },
+                            message: err.dataPath
+                        }
+                    ];
+                }
+                diagnostics.push(diagnostic);
+            }
+        }
+        //process.exit(1);
+    }
+    connection.sendDiagnostics({uri: textDocument.uri, diagnostics}); 
+}
+
+    
+    //let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
+    /*let m: RegExpExecArray | null;
 
     let lines = text.split("\n");
 
@@ -170,10 +237,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
             }
             diagnostics.push(diagnostic);
         } 
-    } 
+    } */
     // Send the array of dianostics to vs code
-    connection.sendDiagnostics({uri: textDocument.uri, diagnostics});
-}
 
 
 connection.onDidChangeWatchedFiles(change => {
