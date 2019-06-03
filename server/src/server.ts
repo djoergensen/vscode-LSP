@@ -1,13 +1,14 @@
 import * as ls from "vscode-languageserver";
 import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
-import { existsSync, readFileSync} from "fs";
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, DocumentOnTypeFormattingRequest, PublishDiagnosticsNotification} from "vscode-languageserver";
+import { existsSync, readFileSync, lstatSync} from "fs";
 import * as path from "path";
-import {buildApplicationSource, loadSchema, showProps} from "./build";
+import {buildApplicationSource, loadSchema, showProps, is_dir} from "./build";
 const chalk = require("chalk");
 const log = require('fancy-log');
 const Ajv = require('Ajv');
+import {buildApplicationSourcePostitions} from "./positions";
 
 
 // Connect to the server
@@ -118,128 +119,70 @@ documents.onDidOpen(doc =>{
     validateTextDocument(change.document);
 });
 */
-
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-    // Wait for the settings for the document
-    let settings = await getDocumentSettings(textDocument.uri);
-    let text = textDocument.getText();
     let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
 
     if(!existsSync(docDir)){
         return null;
     }
     let application = buildApplicationSource(docDir)[0];
-    let topPath = buildApplicationSource(docDir)[1];
+    let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
 
-    const ajv = new Ajv({allErrors: true, verbose: true});
+    let diagnosticURI: Uri;
+
+    const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
     const validation = validator(application);
     if (validation === true) {
         log(chalk.green('Application conforms to the schema'));
+        connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
     } else {
         log(`There were ${chalk.red('errors')} validating the application against the schema:`);
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
             let fileList = err.dataPath.split(/[ \s.\'\[\]]+/);
+            fileList.pop();
+            fileList.shift();
 
-            let error_values = application;
-            for(let i = 1; i<fileList.length-1;i++){
-                error_values = error_values[fileList[i]];
+            let target = position_app;
+            for (let i = 0; i<fileList.length-1;i++){
+                target = target[fileList[i]];
             }
 
-            if (fileList[1]==="authentication" || fileList[1]==="platform" || fileList[1]==="shell"){
-                let diagnosticPath = path.join(topPath,fileList[1],fileList[3])+".json";
-                let diagnosticUri = Uri.file(diagnosticPath);
+            let file = target.dir;
+            diagnosticURI=Uri.file(file);
+            let doc = documents.get(diagnosticURI.toString());
+            if (doc && doc.uri === textDocument.uri){
 
-                let props  = showProps(err.params);
-                let pattern = new RegExp("\""+props[1]+"\"");
-                let text = readFileSync(diagnosticPath, "utf8");
-                let m: RegExpExecArray | null = pattern.exec(text);
-                
                 let diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Warning,
                     range:{
-                        start: textDocument.positionAt(m.index),
-                        end: textDocument.positionAt(m.index + m[0].length)
+                        start: doc.positionAt(target.pos),
+                        end: doc.positionAt(target.posEnd)
                     },
-                    message: err.message,
-                    source: "ex"
+                    message: `- ${err.dataPath || '.'} ${err.message}`,
+                    source: "vscode-lsp"
                 };
                 if (hasDiagnosticRelatedInformationCapability){
                     diagnostic.relatedInformation = [
                         {
                             location: {
-                                uri: diagnosticUri.toString(),
+                                uri: doc.uri,
                                 range: Object.assign({}, diagnostic.range)
                             },
-                            message: err.dataPath
+                            message: err.params.toString()
                         }
                     ];
                 }
                 diagnostics.push(diagnostic);
             }
+                
         }
-        //process.exit(1);
+        connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
     }
-    connection.sendDiagnostics({uri: textDocument.uri, diagnostics}); 
 }
-
-    
-    //let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
-    /*let m: RegExpExecArray | null;
-
-    let lines = text.split("\n");
-
-    let problems = 0;
-    let diagnostics: Diagnostic[] = [];
-
-    while((m = pattern.exec(text)) && settings.maxNumberOfProblems > problems){
-        let docUri = textDocument.uri;
-
-        let lineNumber:number = textDocument.positionAt(m.index).line;
-        let line:string = lines[lineNumber];
-
-
-        let len = docUri.length;
-        let fileLetters = 0;
-        while(docUri[len-fileLetters]!=="/"){
-            fileLetters++;
-        }
-        let folderUri = docUri.slice(0,-fileLetters);
-        let relativeUri:string = line.slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
-        let properUri = relativeUri.replace(/:/g,"/");
-        let destinationUri:string = folderUri+"/"+properUri+".json"; 
-        
-        let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
-        if (!existsSync(normalPath)&& line.includes("\"$ref\"")){
-            problems++;
-            let diagnostic: Diagnostic = {
-                severity: DiagnosticSeverity.Warning,
-                range:{
-                    start: textDocument.positionAt(m.index),
-                    end: textDocument.positionAt(m.index+m[0].length)
-                },
-                message: `${m[0]} is not a valid path.`,
-                source: "ex"
-            };
-            if (hasDiagnosticRelatedInformationCapability){
-                diagnostic.relatedInformation = [
-                    {
-                        location: {
-                            uri: textDocument.uri,
-                            range: Object.assign({}, diagnostic.range)
-                        },
-                        message: "This reference cannot be found"
-                    }
-                ];
-            }
-            diagnostics.push(diagnostic);
-        } 
-    } */
-    // Send the array of dianostics to vs code
-
 
 connection.onDidChangeWatchedFiles(change => {
     connection.console.log("We recieved an file change event");
