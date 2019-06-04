@@ -1,10 +1,10 @@
 import * as ls from "vscode-languageserver";
 import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, DocumentOnTypeFormattingRequest, PublishDiagnosticsNotification} from "vscode-languageserver";
-import { existsSync, readFileSync, lstatSync} from "fs";
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
+import { existsSync} from "fs";
 import * as path from "path";
-import {buildApplicationSource, loadSchema, showProps, is_dir} from "./build";
+import {buildApplicationSource, loadSchema} from "./build";
 const chalk = require("chalk");
 const log = require('fancy-log');
 const Ajv = require('Ajv');
@@ -119,7 +119,26 @@ documents.onDidOpen(doc =>{
     validateTextDocument(change.document);
 });
 */
+function findTarget(dataPath, application, params){
+    for (var key in params){
+        if (key.includes("missingProperty")){
+            return null;
+        }
+    }
+
+    let fileList = dataPath.split(/[ \s.\'\[\]]+/);
+    fileList.pop();
+    fileList.shift();
+
+    let target = application;
+    for (let i = 0; i<fileList.length-1;i++){
+        target = target[fileList[i]];
+    }
+    return target;
+}
+
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+    //let settings = await getDocumentSettings(textDocument.uri);
     let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
 
     if(!existsSync(docDir)){
@@ -128,9 +147,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let application = buildApplicationSource(docDir)[0];
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
-
-    let diagnosticURI: Uri;
-
+    log("POS")
+    //log(position_app.shell.menu.group)
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
     const validation = validator(application);
@@ -142,20 +160,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
-            let fileList = err.dataPath.split(/[ \s.\'\[\]]+/);
-            fileList.pop();
-            fileList.shift();
 
-            let target = position_app;
-            for (let i = 0; i<fileList.length-1;i++){
-                target = target[fileList[i]];
-            }
-
+            let target = findTarget(err.dataPath, position_app, err.params);
+            if (!target){continue;}
             let file = target.dir;
-            diagnosticURI=Uri.file(file);
-            let doc = documents.get(diagnosticURI.toString());
-            if (doc && doc.uri === textDocument.uri){
+            if (file && documents.get(Uri.file(file).toString()).uri === textDocument.uri){
 
+                let doc = documents.get(Uri.file(file).toString());
+                
                 let diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Warning,
                     range:{

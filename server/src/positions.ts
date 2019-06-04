@@ -3,7 +3,6 @@ const log = require('fancy-log');
 const fs = require('fs');
 import {join, dirname, normalize, basename} from "path";
 const jsonlint = require('jsonlint').parser;
-const Ajv = require('Ajv');
 import * as _ from 'lodash';
 import {positionParse} from "./parser";
 

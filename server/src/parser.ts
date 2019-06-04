@@ -1,5 +1,3 @@
-const log = require('fancy-log');
-
 let escapedChars = {
   'b': '\b',
   'f': '\f',
@@ -23,6 +21,7 @@ export function positionParse (source) {
 
 
   function _parse(ptr, topLevel) {
+
     whitespace();
     let data;
     let char = getChar();
@@ -233,7 +232,7 @@ export function positionParse (source) {
   }
 }
 
-
+/*
 export function stringify (data, _, whitespace) {
   if (!validType(data)) { return; }
   let wsLine = 0;
@@ -374,7 +373,7 @@ export function stringify (data, _, whitespace) {
     return Array(n + 1).join(str);
   }
 }
-
+*/
 
 let VALID_TYPES = ['number', 'boolean', 'string', 'object'];
 function validType(data) {
