@@ -83,7 +83,7 @@ connection.onDidChangeConfiguration(change => {
     // Validate all open documents
     documents.all().forEach(validateTextDocument);
 });
-
+/*
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
     if (!hasConfigurationCapability){
         return Promise.resolve(globalSettings);
@@ -98,7 +98,7 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
     }
     return result;
 }
-
+*/
 
 // Only keep settings for open documents
 documents.onDidClose(e => {
@@ -126,10 +126,9 @@ function findTarget(dataPath, application, params){
         }
     }
 
-    let fileList = dataPath.split(/[ \s.\'\[\]]+/);
+    let fileList = dataPath.split(/[.\'\[\]]+/);
     fileList.pop();
     fileList.shift();
-
     let target = application;
     for (let i = 0; i<fileList.length-1;i++){
         target = target[fileList[i]];
@@ -149,6 +148,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let application = buildApplicationSource(docDir)[0];
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
+    
+
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
     const validation = validator(application);
@@ -160,6 +161,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
+
 
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
@@ -179,13 +181,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
                     source: "vscode-lsp"
                 };
                 if (hasDiagnosticRelatedInformationCapability){
+                    let errorMessage:string = JSON.stringify(err.params);
                     diagnostic.relatedInformation = [
                         {
                             location: {
                                 uri: doc.uri,
                                 range: Object.assign({}, diagnostic.range)
                             },
-                            message: err.params.toString()
+                            message: errorMessage
                         }
                     ];
                 }
