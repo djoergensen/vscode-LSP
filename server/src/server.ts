@@ -134,6 +134,8 @@ function findTarget(dataPath, application, params){
     for (let i = 0; i<fileList.length-1;i++){
         target = target[fileList[i]];
     }
+    let meta = "meta"+fileList[fileList.length-1];
+    target=target[meta];
     return target;
 }
 
@@ -147,8 +149,6 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     let application = buildApplicationSource(docDir)[0];
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
-    log("POS")
-    //log(position_app.shell.menu.group)
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
     const validation = validator(application);
@@ -163,10 +163,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
-            let file = target.dir;
-            if (file && documents.get(Uri.file(file).toString()).uri === textDocument.uri){
+            let path = target.dir;
 
-                let doc = documents.get(Uri.file(file).toString());
+            if (path && documents.get(Uri.file(path).toString()).uri === textDocument.uri){
+
+                let doc = documents.get(Uri.file(path).toString());
                 
                 let diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Warning,

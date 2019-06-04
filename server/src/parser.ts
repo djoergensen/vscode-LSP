@@ -1,3 +1,5 @@
+const log = require('fancy-log');
+
 let escapedChars = {
   'b': '\b',
   'f': '\f',
@@ -135,19 +137,18 @@ export function positionParse (source) {
     while (true) {
       let loc = getLoc();
       if (getChar() !== '"') { wasUnexpectedToken(); }
-      obj["line"] =line;
-      obj["column"] = column;
-      obj["pos"] = pos;
+ 
+      let oldpos = pos;
       let key = parseString();
-      obj["lineEnd"] =line;
-      obj["columnEnd"] = column;
-      obj["posEnd"] = pos;
-      let propPtr = ptr + '/' + escapeJsonPointer(key);
+      let metaKey = "meta" + key;
+      obj[metaKey] = {pos: pos, posEnd: oldpos};
 
+      let propPtr = ptr + '/' + escapeJsonPointer(key);
       whitespace();
       if (getChar() !== ':') { wasUnexpectedToken(); }
       whitespace();
       obj[key] = _parse(propPtr, false);
+
       whitespace();
       let char = getChar();
       if (char === '}') { break; }
