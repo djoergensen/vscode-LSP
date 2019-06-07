@@ -139,16 +139,18 @@ function findTarget(dataPath, application, params){
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+
     //let settings = await getDocumentSettings(textDocument.uri);
     let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
 
     if(!existsSync(docDir)){
         return null;
     }
+
+
     let application = buildApplicationSource(docDir)[0];
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
-    
 
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
@@ -162,12 +164,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
 
-
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
             let path = target.dir;
 
-            if (path && documents.get(Uri.file(path).toString()).uri === textDocument.uri){
+            if (path && Uri.file(path).toString() === textDocument.uri){
 
                 let doc = documents.get(Uri.file(path).toString());
                 

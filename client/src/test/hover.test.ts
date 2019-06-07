@@ -3,11 +3,18 @@ import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 import {Hover} from "vscode-languageserver";
 describe('Should provide hovers', () => {
-	const docUri = getDocUri('hover.json');
+	const docUri = getDocUri('application.json');
+	const platformUri = getDocUri('Platform/Platform.json');
+	const shellUri = getDocUri('Shell/Shell.json');
+	const workspaceUri = getDocUri('Workspace/Workspace.json');
+	const dailyTimeSheetsUri = getDocUri('Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
+
 	it('Hovers no path or instruction', async () => {
-	
-		await testHover(docUri, new vscode.Position(6, 23), [{contents: "Ctrl + click to follow path", range:{start:{line: 6, character: 11}, end:{line:6,character:26}}}]
-		);
+		await testHover(docUri, new vscode.Position(10, 21), [{contents: "Ctrl + click to follow path", range:{start:{line: 10, character: 12}, end:{line:10,character:25}}}]);
+		await testHover(platformUri, new vscode.Position(8, 17), [{contents: "Ctrl + click to follow path", range:{start:{line: 8, character: 12}, end:{line:8,character:23}}}]);
+		await testHover(shellUri, new vscode.Position(6, 17), [{contents: "Ctrl + click to follow path", range:{start:{line: 6, character: 12}, end:{line:6,character:22}}}]);
+		await testHover(workspaceUri, new vscode.Position(78, 37), [{contents: "Ctrl + click to follow path", range:{start:{line: 78, character: 14}, end:{line:78,character:48}}}]);
+		await testHover(dailyTimeSheetsUri, new vscode.Position(18, 28), [{contents: "Ctrl + click to follow path", range:{start:{line: 18, character: 16}, end:{line:18,character:51}}}]);
 	});
 });
 

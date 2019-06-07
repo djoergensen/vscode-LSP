@@ -34,8 +34,20 @@ export function is_dir(path) {
 
 function getSchema(dir:string){
   while(basename(dir)!=="iAccess"){
+    if (fs.existsSync(dir+"\\schema.json")){
+      let schemaArray = getFiles(dir,[], "schema.json");
+      let len = schemaArray.length;
+      if(len<1){
+        log('No schemas found in workspace');
+      }  else if(len>1){
+        log('More than 1 schema found in workspace');
+      }
+      return schemaArray[0];
+    }
     dir=dirname(dir);
+    
   }
+
   dir = join(dir, "tools", "core", "dist", "dev", "web");
   let schemaArray = getFiles(dir,[], "schema.json");
   let len = schemaArray.length;
@@ -47,7 +59,7 @@ function getSchema(dir:string){
   return schemaArray[0];
 }
 function getApplication(dir:string){
-  while(basename(dir).length!==2){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture"){
     dir=dirname(dir);
   }
   let applicationArray = getFiles(dir,[], "application.json");

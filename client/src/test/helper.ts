@@ -21,9 +21,10 @@ export async function activate(docUri: vscode.Uri) {
 	} catch (e) {
 		console.error(e);
 	}
+
 }
 
-async function sleep(ms: number) {
+export async function sleep(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 

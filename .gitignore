@@ -3,4 +3,4 @@ node_modules/
 .vscode-test
 .vsix
 p4ignore.txt
-
+client/testFixture
