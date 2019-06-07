@@ -3,20 +3,18 @@ import Uri from 'vscode-uri';
 import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
 import { existsSync} from "fs";
-import * as path from "path";
+import {normalize, dirname} from "path";
 import {buildApplicationSource, loadSchema} from "./build";
 const chalk = require("chalk");
 const log = require('fancy-log');
 const Ajv = require('Ajv');
 import {buildApplicationSourcePostitions} from "./positions";
 
-
 // Connect to the server
 let connection =  ls.createConnection(ls.ProposedFeatures.all);
 
 // Creates the document manager
 let documents: ls.TextDocuments = new ls.TextDocuments();
-
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -83,22 +81,7 @@ connection.onDidChangeConfiguration(change => {
     // Validate all open documents
     documents.all().forEach(validateTextDocument);
 });
-/*
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
-    if (!hasConfigurationCapability){
-        return Promise.resolve(globalSettings);
-    }
-    let result = documentSettings.get(resource);
-    if (!result) {
-        result = connection.workspace.getConfiguration({
-            scopeUri: resource,
-            section: "languageServer"
-        });
-        documentSettings.set(resource,result);
-    }
-    return result;
-}
-*/
+
 
 // Only keep settings for open documents
 documents.onDidClose(e => {
@@ -125,7 +108,6 @@ function findTarget(dataPath, application, params){
             return null;
         }
     }
-
     let fileList = dataPath.split(/[.\'\[\]]+/);
     fileList.pop();
     fileList.shift();
@@ -138,23 +120,75 @@ function findTarget(dataPath, application, params){
     return target;
 }
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+function checkPath(pattern, textDocument, diagnostics){
+    let text = textDocument.getText();
+    let lines = text.split("\n");
+    let m: RegExpExecArray | null;
 
-    //let settings = await getDocumentSettings(textDocument.uri);
-    let docDir = path.dirname(path.normalize(Uri.parse(textDocument.uri).fsPath));
+    while((m = pattern.exec(text))){
+        let docUri = textDocument.uri;
+
+        let lineNumber:number = textDocument.positionAt(m.index).line;
+        let line:string = lines[lineNumber];
+
+        let len = docUri.length;
+        let fileLetters = 0;
+        while(docUri[len-fileLetters]!=="/"){
+            fileLetters++;
+        }
+        let folderUri = docUri.slice(0,-fileLetters);
+        let relativeUri:string = line.slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
+        let properUri = relativeUri.replace(/:/g,"/");
+        let destinationUri:string = folderUri+"/"+properUri+".json"; 
+        
+        let normalPath = normalize(Uri.parse(destinationUri).fsPath);
+
+        if (!existsSync(normalPath)&& line.includes("\"$ref\"")){
+
+            let diagnostic: Diagnostic = {
+                severity: DiagnosticSeverity.Warning,
+                range:{
+                    start: textDocument.positionAt(m.index),
+                    end: textDocument.positionAt(m.index+m[0].length)
+                },
+                message: `${m[0]} is not a valid path.`,
+                source: "ex"
+            };
+            if (hasDiagnosticRelatedInformationCapability){
+                diagnostic.relatedInformation = [
+                    {
+                        location: {
+                            uri: textDocument.uri,
+                            range: Object.assign({}, diagnostic.range)
+                        },
+                        message: "This reference cannot be found"
+                    }
+                ];
+            }
+            diagnostics.push(diagnostic);
+        }
+    }
+}
+
+
+async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+    let docDir = dirname(normalize(Uri.parse(textDocument.uri).fsPath));
 
     if(!existsSync(docDir)){
         return null;
     }
 
-
     let application = buildApplicationSource(docDir)[0];
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
 
+    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
+    checkPath(pattern,textDocument, diagnostics);
+
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     const validator = ajv.compile(loadSchema(docDir));
     const validation = validator(application);
+    
     if (validation === true) {
         log(chalk.green('Application conforms to the schema'));
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
@@ -169,9 +203,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
             let path = target.dir;
 
             if (path && Uri.file(path).toString() === textDocument.uri){
-
                 let doc = documents.get(Uri.file(path).toString());
-                
+        
                 let diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Warning,
                     range:{
@@ -192,10 +225,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
                             message: errorMessage
                         }
                     ];
-                }
+                }   
                 diagnostics.push(diagnostic);
-            }
-                
+            }       
         }
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
     }
@@ -270,7 +302,7 @@ connection.onHover(({ textDocument, position }): Hover => {
     let properUri = relativeUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
+    let normalPath = normalize(Uri.parse(destinationUri).fsPath);
 
     if (!existsSync(normalPath)){
         return null;
@@ -284,7 +316,6 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
         return null;
     }
     let text:string =documents.get(textDocumentPositionParams.textDocument.uri).getText();
-
 
     let lines = text.split("\n");
     let lineNumber:number = textDocumentPositionParams.position.line;
@@ -314,29 +345,13 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     let properUri =fileUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    let normalPath = path.normalize(Uri.parse(destinationUri).fsPath);
+    let normalPath = normalize(Uri.parse(destinationUri).fsPath);
     if (!existsSync(Uri.parse(normalPath).fsPath)){
         return null;
     }
     return Location.create(destinationUri,range);
 });
 
-
-// Logging open,close and change of documents
-/*
-connection.onDidOpenTextDocument((params)=>{
-    docText = params.textDocument.text;
-    console.log("OPENED "+params.textDocument.text)
-    connection.console.log(`${params.textDocument.uri} opened`);
-});
-
-connection.onDidChangeTextDocument((params) => {
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
-});
-connection.onDidCloseTextDocument((params) => {
-	connection.console.log(`${params.textDocument.uri} closed.`);
-});
-*/
 
 
 
