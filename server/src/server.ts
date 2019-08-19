@@ -20,14 +20,14 @@ let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability:boolean = false;
 
-
 connection.onInitialize((params: InitializeParams)=>{
     let capabilities = params.capabilities;
     // Checks if the client supports the workspace/configuration request
     hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
     hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
     hasDiagnosticRelatedInformationCapability = !!(capabilities.textDocument && capabilities.textDocument.publishDiagnostics && capabilities.textDocument.publishDiagnostics.relatedInformation);
-    
+
+
     return {
         capabilities: {
             openClose: true,
@@ -67,7 +67,7 @@ const defaultSettings: ExampleSettings = {maxNumberOfProblems: 1000};
 let globalSettings: ExampleSettings = defaultSettings;
 
 // Save the settings of all open documents
-let documentSettings: Map<string, Thenable<ExampleSettings>>= new Map();
+let documentSettings: Map<string, ExampleSettings>= new Map();
 
 connection.onDidChangeConfiguration(change => {
     if (hasConfigurationCapability){
@@ -96,9 +96,8 @@ documents.onDidOpen(doc =>{
     validateTextDocument(doc.document);
 });
 
-// A change in the content of a document has occurred. This is allso called
-// when the documents is first opened
-/*documents.onDidChangeContent(change => {
+/*
+documents.onDidChangeContent(change => {
     validateTextDocument(change.document);
 });
 */
@@ -171,24 +170,29 @@ function checkPath(pattern, textDocument, diagnostics){
 }
 
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+function validateTextDocument(textDocument: TextDocument) {
     let docDir = dirname(normalize(Uri.parse(textDocument.uri).fsPath));
-
     if(!existsSync(docDir)){
         return null;
     }
 
-    let application = buildApplicationSource(docDir)[0];
+    let application = buildApplicationSource(docDir);
+    if (!application){
+        return null;
+    }
     let position_app = buildApplicationSourcePostitions(docDir);
+    if (!position_app){
+        return null;
+    }
     let diagnostics: Diagnostic[] = [];
 
     let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
     checkPath(pattern,textDocument, diagnostics);
 
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
-    const validator = ajv.compile(loadSchema(docDir));
+    let schema = loadSchema(docDir);
+    const validator = ajv.compile(schema);
     const validation = validator(application);
-    
     if (validation === true) {
         log(chalk.green('Application conforms to the schema'));
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
@@ -197,6 +201,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
+            log(err.parentSchema);
+            log(err.schemaPath);
 
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
@@ -237,21 +243,71 @@ connection.onDidChangeWatchedFiles(change => {
     connection.console.log("We recieved an file change event");
 });
 
+
+function findReference(doc, schema){
+    let fileList = doc.split("20")[1].slice(1,-5).split("/");
+    let end = fileList[fileList.length-1].toLowerCase();
+    let next = schema.properties[fileList[0].toLowerCase()];
+    let pointer = JSON.stringify(next['$ref']).slice(0,-1);
+
+    let target = findKeysFromDataPath(pointer, schema).properties;
+    for (var key in target){
+        if (key.toLocaleLowerCase() === end){
+            let path = target[key]["$ref"];
+            return path;
+        }
+    }
+    return target;
+}
+function findKeysFromDataPath(dataPath, schema){
+    let arr = dataPath.split("/");
+    arr.shift();
+
+    let target = schema;
+    for (let i = 0; i<arr.length;i++){
+        target = target[arr[i]];
+    }
+    return target;
+}
+
+
 // Handler for completion items
 connection.onCompletion(
     (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-        return [
-            {
-                label: 'Dog',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'Cat',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}    
-        ];
+        let docDir = dirname(normalize(Uri.parse(textDocumentPosition.textDocument.uri).fsPath));
+        let schema = loadSchema(docDir);
+        let doc = textDocumentPosition.textDocument.uri;
+        let end = doc.split("20")[1].slice(1,-5).split("/");
+
+        let lineNum = textDocumentPosition.position.line;
+        let line = documents.get(textDocumentPosition.textDocument.uri).getText(Range.create(Position.create(lineNum,0),Position.create(lineNum+1,0)));
+        let colon = line.indexOf(":");
+        if (textDocumentPosition.position.character >= colon){
+            return [];
+        }
+
+        if (end.length === 1){
+            let props = schema.properties;
+            let compArr = [];
+            for (var key in props){
+                const snippetCompletion = CompletionItem.create("\""+key);
+                snippetCompletion.kind = CompletionItemKind.Snippet;
+                compArr.push(snippetCompletion);
+            }
+            return compArr;
+        }
+        let ref = findReference(doc,schema);
+        while (typeof ref !== "object"){
+            ref = findKeysFromDataPath(ref,schema).properties;
+        }
+        let compArr = [];
+// tslint:disable-next-line: no-duplicate-variable
+        for (var key in ref){
+            const snippetCompletion = CompletionItem.create("\""+key);
+            snippetCompletion.kind = CompletionItemKind.Snippet;
+            compArr.push(snippetCompletion);
+        }
+        return compArr;
     }
 );
 

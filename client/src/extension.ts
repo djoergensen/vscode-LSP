@@ -8,8 +8,6 @@ let client : LanguageClient;
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
 
-	let workSpaceFolder = workspace.getWorkspaceFolder;
-
 	let serverModule = context.asAbsolutePath(
 		join("server", "out", "server.js")
 	);

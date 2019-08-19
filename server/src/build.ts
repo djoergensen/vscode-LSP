@@ -59,8 +59,11 @@ function getSchema(dir:string){
   return schemaArray[0];
 }
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture"){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!=="c:\\"){
     dir=dirname(dir);
+  }
+  if (dir==="c:\\"){
+    return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");
   let len = applicationArray.length;
@@ -69,18 +72,20 @@ function getApplication(dir:string){
   }  else if(len>1){
     log('More than 1 application found in workspace');
   }
-  return [applicationArray[0], dir];
+  return applicationArray[0];
 }
 
 
 
 
 export function buildApplicationSource(dirPath: string) {
-    const applicationJsonPath = getApplication(dirPath)[0];
-    const topPath = getApplication(dirPath)[1];
+    const applicationJsonPath = getApplication(dirPath);
+    if (!applicationJsonPath){
+      return null;
+    }
     const application = doLoadApplication(applicationJsonPath);
     //validate(application)
-    return [application, topPath];
+    return application;
 }
   
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
