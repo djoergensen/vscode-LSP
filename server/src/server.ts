@@ -67,7 +67,7 @@ const defaultSettings: ExampleSettings = {maxNumberOfProblems: 1000};
 let globalSettings: ExampleSettings = defaultSettings;
 
 // Save the settings of all open documents
-let documentSettings: Map<string, Thenable<ExampleSettings>>= new Map();
+let documentSettings: Map<string, ExampleSettings>= new Map();
 
 connection.onDidChangeConfiguration(change => {
     if (hasConfigurationCapability){
@@ -171,14 +171,14 @@ function checkPath(pattern, textDocument, diagnostics){
 }
 
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
+function validateTextDocument(textDocument: TextDocument) {
     let docDir = dirname(normalize(Uri.parse(textDocument.uri).fsPath));
 
     if(!existsSync(docDir)){
         return null;
     }
 
-    let application = buildApplicationSource(docDir)[0];
+    let application = buildApplicationSource(docDir);
     let position_app = buildApplicationSourcePostitions(docDir);
     let diagnostics: Diagnostic[] = [];
 
