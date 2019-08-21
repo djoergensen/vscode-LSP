@@ -4,3 +4,4 @@ node_modules/
 .vsix
 p4ignore.txt
 client/testFixture
+server/src/*.js

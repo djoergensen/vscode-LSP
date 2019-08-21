@@ -1,7 +1,7 @@
-import * as ls from "vscode-languageserver";
 import Uri from 'vscode-uri';
-import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
+import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
+    ProposedFeatures, Definition} from "vscode-languageserver";
 import { existsSync} from "fs";
 import {normalize, dirname} from "path";
 import {buildApplicationSource, loadSchema} from "./build";
@@ -11,10 +11,10 @@ const Ajv = require('Ajv');
 import {buildApplicationSourcePostitions} from "./positions";
 
 // Connect to the server
-let connection =  ls.createConnection(ls.ProposedFeatures.all);
+let connection =  createConnection(ProposedFeatures.all);
 
 // Creates the document manager
-let documents: ls.TextDocuments = new ls.TextDocuments();
+let documents: TextDocuments = new TextDocuments();
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
@@ -32,7 +32,7 @@ connection.onInitialize((params: InitializeParams)=>{
         capabilities: {
             openClose: true,
             textDocumentSync: documents.syncKind,
-            // Tell client what services is provided
+            // Tell client what services are provided
             completionProvider: {
                 resolveProvider: true
             },
@@ -367,7 +367,7 @@ connection.onHover(({ textDocument, position }): Hover => {
 });
 
 // Handler for definition request
-connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):ls.Definition  => {
+connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):Definition  => {
     if(textDocumentPositionParams.position.character<=1){
         return null;
     }
