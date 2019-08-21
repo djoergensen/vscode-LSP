@@ -61,10 +61,10 @@
 		"test": "node ./client/node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^8.10.46",
-		"tslint": "^5.16.0",
-		"typescript": "^3.4.5"
+		"@types/mocha": "^5.2.7",
+		"@types/node": "^8.10.49",
+		"tslint": "^5.17.0",
+		"typescript": "^3.5.2"
 	},
 	"dependencies": {
 		"ajv": "^6.10.0",
