@@ -8,8 +8,6 @@ import {normalize, dirname} from "path";
 import {buildApplicationSource, loadSchema, hasSchema} from "./build";
 import {buildApplicationSourcePostitions} from "./positions";
 
-const chalk = require("chalk");
-const log = require('fancy-log');
 const Ajv = require('Ajv');
 
 // Connect to the server
@@ -176,11 +174,6 @@ function validateTextDocument(textDocument: TextDocument) {
         return null;
     }
 
-<<<<<<< HEAD
-    let application = buildApplicationSource(docDir);
-    let position_app = buildApplicationSourcePostitions(docDir);
-=======
->>>>>>> development
     let diagnostics: Diagnostic[] = [];
 
     let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
@@ -206,16 +199,9 @@ function validateTextDocument(textDocument: TextDocument) {
     const validator = ajv.compile(schema);
     const validation = validator(application);
     if (validation === true) {
-        log(chalk.green('Application conforms to the schema'));
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
     } else {
-        log(`There were ${chalk.red('errors')} validating the application against the schema:`);
-        // pretty printing the error object
         for (const err of validator.errors) {
-            log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
-            log(err.parentSchema);
-            log(err.schemaPath);
-
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
             let path = target.dir;

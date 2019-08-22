@@ -36,13 +36,7 @@ export function hasSchema(dir:string){
 
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
-  if(len<1){
-    log('No schemas found in workspace');
-  }  else if(len>1){
-    log('More than 1 schema found in workspace');
-  } else {
-    return true;
-  }
+  return true;
 }
 
 
@@ -54,19 +48,9 @@ function getSchema(dir:string){
 
   let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
   let schemaArray = getFiles(schemaPath,[], "schema.json");
-  let len = schemaArray.length;
-  if(len<1){
-    log('No schemas found in workspace');
-  }  else if(len>1){
-    log('More than 1 schema found in workspace');
-  }
   return schemaArray[0];
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> development
 function getApplication(dir:string){
   while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!=="c:\\"){
     dir=dirname(dir);
@@ -76,23 +60,16 @@ function getApplication(dir:string){
   }
   let applicationArray = getFiles(dir,[], "application.json");
   let len = applicationArray.length;
-  if(len<1){
-    log('No applications found in workspace');
-  }  else if(len>1){
-    log('More than 1 application found in workspace');
-  }
+
   return applicationArray[0];
 }
 
 
 export function buildApplicationSource(dirPath: string) {
     const applicationJsonPath = getApplication(dirPath);
-<<<<<<< HEAD
-=======
     if (!applicationJsonPath){
       return null;
     }
->>>>>>> development
     const application = doLoadApplication(applicationJsonPath);
     //validate(application)
     return application;
@@ -101,7 +78,6 @@ export function buildApplicationSource(dirPath: string) {
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
     const application = resolveJsonRefs(applicationJsonPath, true);
     application['terms'] = {};
-    log(`Loaded application from ${chalk.green(applicationJsonPath)}`);
     return application;
 }
 
@@ -166,7 +142,6 @@ function processArray(directory: string, node: any, stripLocalizationMarkers: bo
 
 function reportSyntaxError(filename: string, e: SyntaxError) {
   try {
-    log("PARSING");
     jsonlint.parse(fs.readFileSync(filename, 'utf8'));
   } catch (e) {
     log(chalk.white.bgRed.bold('--------------------------------------------'));
@@ -184,6 +159,5 @@ export function loadSchema(path:string): any {
   let schemaPath = getSchema(path);
   const schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
   const schema = JSON.parse(schemaFileHandle);
-  log(`Loaded schema from ${chalk.green(schemaPath)}`);
   return schema;
 }

@@ -62,9 +62,9 @@
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.7",
-		"@types/node": "^8.10.49",
-		"tslint": "^5.17.0",
-		"typescript": "^3.5.2"
+		"@types/node": "^8.10.52",
+		"tslint": "^5.19.0",
+		"typescript": "^3.5.3"
 	},
 	"dependencies": {
 		"ajv": "^6.10.2",
