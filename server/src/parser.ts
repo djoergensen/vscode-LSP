@@ -20,10 +20,7 @@ export function positionParse (source) {
   let pos = 0;
   return _parse('', true);
 
-
-
   function _parse(ptr, topLevel) {
-
     whitespace();
     let data;
     let char = getChar();
@@ -208,7 +205,6 @@ export function positionParse (source) {
   }
 
 
-
   function getLoc() {
     return {
       line: line,
@@ -233,148 +229,6 @@ export function positionParse (source) {
   }
 }
 
-/*
-export function stringify (data, _, whitespace) {
-  if (!validType(data)) { return; }
-  let wsLine = 0;
-  let wsPos, wsColumn;
-  switch (typeof whitespace) {
-    case 'number':
-      let len = whitespace > 10
-                  ? 10
-                  : whitespace < 0
-                    ? 0
-                    : Math.floor(whitespace);
-      whitespace = len && repeat(len, ' ');
-      wsPos = len;
-      wsColumn = len;
-      break;
-    case 'string':
-      whitespace = whitespace.slice(0, 10);
-      wsPos = 0;
-      wsColumn = 0;
-      for (let j=0; j<whitespace.length; j++) {
-        let char = whitespace[j];
-        switch (char) {
-          case ' ': wsColumn++; break;
-          case '\t': wsColumn += 4; break;
-          case '\r': wsColumn = 0; break;
-          case '\n': wsColumn = 0; wsLine++; break;
-          default: throw new Error('whitespace characters not allowed in JSON');
-        }
-        wsPos++;
-      }
-      break;
-    default:
-      whitespace = undefined;
-  }
-
-  let json = '';
-  let line = 0;
-  let column = 0;
-  let pos = 0;
-  _stringify(data, 0, '');
-  return {
-    json: json,
-  };
-
-  function _stringify(_data, lvl, ptr) {
-    switch (typeof _data) {
-      case 'number':
-      case 'boolean':
-        out('' + _data); break;
-      case 'string':
-        out(quoted(_data)); break;
-      case 'object':
-        if (_data === null) {
-          out('null');
-        }
-        else if (typeof _data.toJSON === 'function') {
-          out(quoted(_data.toJSON()));
- }
-        else if (Array.isArray(_data)) {
-          stringifyArray();
- }
-        else {
-          stringifyObject();
- }
-    }
-
-
-    function stringifyArray() {
-      if (_data.length) {
-        out('[');
-        let itemLvl = lvl + 1;
-        for (let i=0; i<_data.length; i++) {
-          if (i) { out(','); }
-          indent(itemLvl);
-          let item = validType(_data[i]) ? _data[i] : null;
-          let itemPtr = ptr + '/' + i;
-          _stringify(item, itemLvl, itemPtr);
-        }
-        indent(lvl);
-        out(']');
-      } else {
-        out('[]');
-      }
-    }
-
-    function stringifyObject() {
-      let keys = Object.keys(_data);
-      if (keys.length) {
-        out('{');
-        let propLvl = lvl + 1;
-        for (let i=0; i<keys.length; i++) {
-          let key = keys[i];
-          let value = _data[key];
-          if (validType(value)) {
-            if (i) { out(','); }
-            let propPtr = ptr + '/' + escapeJsonPointer(key);
-            indent(propLvl);
-            out(quoted(key));
-            out(':');
-            if (whitespace) { out(' '); }
-            _stringify(value, propLvl, propPtr);
-          }
-        }
-        indent(lvl);
-        out('}');
-      } else {
-        out('{}');
-      }
-    }
-  }
-
-  function out(str) {
-    column += str.length;
-    pos += str.length;
-    json += str;
-  }
-
-  function indent(lvl) {
-    if (whitespace) {
-      json += '\n' + repeat(lvl, whitespace);
-      line++;
-      column = 0;
-      while (lvl--) {
-        if (wsLine) {
-          line += wsLine;
-          column = wsColumn;
-        } else {
-          column += wsColumn;
-        }
-        pos += wsPos;
-      }
-      pos += 1; // \n character
-    }
-  }
-
-
-  function repeat(n, str) {
-    return Array(n + 1).join(str);
-  }
-}
-*/
 
 let VALID_TYPES = ['number', 'boolean', 'string', 'object'];
 function validType(data) {

@@ -22,34 +22,38 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   }
   return fileList;
 }
-export function is_dir(path) {
-  try {
-      var stat = fs.lstatSync(path);
-      return stat.isDirectory();
-  } catch (e) {
-      // lstatSync throws an error if path doesn't exist
-      return false;
+
+export function hasSchema(dir:string){
+  while(basename(dir)!=="Application" && dir!=="c:\\"){
+    dir = dirname(dir);
+  }
+  if (dir ==="c:\\"){
+    return false;
+  }
+  let root = dirname(dir);
+
+  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
+
+  let schemaArray = getFiles(schemaPath,[], "schema.json");
+  let len = schemaArray.length;
+  if(len<1){
+    log('No schemas found in workspace');
+  }  else if(len>1){
+    log('More than 1 schema found in workspace');
+  } else {
+    return true;
   }
 }
 
-function getSchema(dir:string){
-  while(basename(dir)!=="iAccess"){
-    if (fs.existsSync(dir+"\\schema.json")){
-      let schemaArray = getFiles(dir,[], "schema.json");
-      let len = schemaArray.length;
-      if(len<1){
-        log('No schemas found in workspace');
-      }  else if(len>1){
-        log('More than 1 schema found in workspace');
-      }
-      return schemaArray[0];
-    }
-    dir=dirname(dir);
-    
-  }
 
-  dir = join(dir, "tools", "core", "dist", "dev", "web");
-  let schemaArray = getFiles(dir,[], "schema.json");
+function getSchema(dir:string){
+  while(basename(dir)!=="Application" && dir!=="c:\\"){
+    dir=dirname(dir);
+  }
+  let root = dirname(dir);
+
+  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
+  let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
   if(len<1){
     log('No schemas found in workspace');
@@ -58,6 +62,8 @@ function getSchema(dir:string){
   }
   return schemaArray[0];
 }
+
+
 function getApplication(dir:string){
   while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!=="c:\\"){
     dir=dirname(dir);
@@ -74,8 +80,6 @@ function getApplication(dir:string){
   }
   return applicationArray[0];
 }
-
-
 
 
 export function buildApplicationSource(dirPath: string) {
@@ -164,18 +168,6 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
     log(chalk.white.bgRed.bold(e));
     log(chalk.white.bgRed.bold('--------------------------------------------'));
   }
-}
-
-export function showProps(obj) {
-  var result = [];
-  for (var i in obj) {
-    // obj.hasOwnProperty() is used to filter out properties from the object's prototype chain
-    if (obj.hasOwnProperty(i)) {
-      result.push(i);
-      result.push(obj[i]);
-    }
-  }
-  return result;
 }
 
 /**

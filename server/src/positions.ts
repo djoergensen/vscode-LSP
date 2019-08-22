@@ -25,16 +25,6 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   return fileList;
 }
 
-export function is_dir(path) {
-  try {
-      var stat = fs.lstatSync(path);
-      return stat.isDirectory();
-  } catch (e) {
-      // lstatSync throws an error if path doesn't exist
-      return false;
-  }
-}
-
 function getApplication(dir:string){
   while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!=="c:\\"){
     dir=dirname(dir);
@@ -70,7 +60,6 @@ function doLoadApplication(applicationJsonPath: string): any /* IApplicationConf
 }
   
 
-
 /**
  * Loads a file with the given filename and resolves all JSON references recursively.
  * @param filename a JSON file
@@ -88,7 +77,6 @@ function resolveJsonRefs(filename: string, stripLocalizationMarkers: boolean): a
     }
   }
 }
-
 
 
 function processNode(directory: string, node: any, stripLocalizationMarkers: boolean, fileName:string): any {

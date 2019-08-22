@@ -1,14 +1,16 @@
-import Uri from 'vscode-uri';
+
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
     ProposedFeatures, Definition} from "vscode-languageserver";
-import { existsSync} from "fs";
+import Uri from 'vscode-uri';
+import {existsSync} from "fs";
 import {normalize, dirname} from "path";
-import {buildApplicationSource, loadSchema} from "./build";
+import {buildApplicationSource, loadSchema, hasSchema} from "./build";
+import {buildApplicationSourcePostitions} from "./positions";
+
 const chalk = require("chalk");
 const log = require('fancy-log');
 const Ajv = require('Ajv');
-import {buildApplicationSourcePostitions} from "./positions";
 
 // Connect to the server
 let connection =  createConnection(ProposedFeatures.all);
@@ -126,7 +128,6 @@ function checkPath(pattern, textDocument, diagnostics){
 
     while((m = pattern.exec(text))){
         let docUri = textDocument.uri;
-
         let lineNumber:number = textDocument.positionAt(m.index).line;
         let line:string = lines[lineNumber];
 
@@ -142,8 +143,7 @@ function checkPath(pattern, textDocument, diagnostics){
         
         let normalPath = normalize(Uri.parse(destinationUri).fsPath);
 
-        if (!existsSync(normalPath)&& line.includes("\"$ref\"")){
-
+        if (!existsSync(normalPath) && line.includes("\"$ref\"") && !line.includes("#/")){
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
                 range:{
@@ -176,6 +176,17 @@ function validateTextDocument(textDocument: TextDocument) {
         return null;
     }
 
+    let diagnostics: Diagnostic[] = [];
+
+    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
+    checkPath(pattern,textDocument, diagnostics);
+
+    if(!hasSchema(docDir)){
+        connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
+        connection.sendNotification("custom/hasSchema", textDocument.uri);
+        return null;
+    }
+
     let application = buildApplicationSource(docDir);
     if (!application){
         return null;
@@ -184,10 +195,6 @@ function validateTextDocument(textDocument: TextDocument) {
     if (!position_app){
         return null;
     }
-    let diagnostics: Diagnostic[] = [];
-
-    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
-    checkPath(pattern,textDocument, diagnostics);
 
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
     let schema = loadSchema(docDir);
@@ -408,11 +415,7 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     return Location.create(destinationUri,range);
 });
 
-
-
-
 // Listen for open,close and change events for the doc manager
 documents.listen(connection);
-
 
 connection.listen();
