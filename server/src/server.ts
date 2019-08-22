@@ -1,25 +1,26 @@
-import * as ls from "vscode-languageserver";
+
+import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
+    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
+    ProposedFeatures, Definition} from "vscode-languageserver";
 import Uri from 'vscode-uri';
-import { TextDocument, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover} from "vscode-languageserver";
-import { existsSync} from "fs";
+import {existsSync} from "fs";
 import {normalize, dirname} from "path";
-import {buildApplicationSource, loadSchema} from "./build";
+import {buildApplicationSource, loadSchema, hasSchema} from "./build";
+import {buildApplicationSourcePostitions} from "./positions";
+
 const chalk = require("chalk");
 const log = require('fancy-log');
 const Ajv = require('Ajv');
-import {buildApplicationSourcePostitions} from "./positions";
 
 // Connect to the server
-let connection =  ls.createConnection(ls.ProposedFeatures.all);
+let connection =  createConnection(ProposedFeatures.all);
 
 // Creates the document manager
-let documents: ls.TextDocuments = new ls.TextDocuments();
+let documents: TextDocuments = new TextDocuments();
 
 let hasConfigurationCapability: boolean = false;
 let hasWorkspaceFolderCapability: boolean = false;
 let hasDiagnosticRelatedInformationCapability:boolean = false;
-
 
 connection.onInitialize((params: InitializeParams)=>{
     let capabilities = params.capabilities;
@@ -27,12 +28,13 @@ connection.onInitialize((params: InitializeParams)=>{
     hasConfigurationCapability = !!(capabilities.workspace && !!capabilities.workspace.configuration);
     hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
     hasDiagnosticRelatedInformationCapability = !!(capabilities.textDocument && capabilities.textDocument.publishDiagnostics && capabilities.textDocument.publishDiagnostics.relatedInformation);
-    
+
+
     return {
         capabilities: {
             openClose: true,
             textDocumentSync: documents.syncKind,
-            // Tell client what services is provided
+            // Tell client what services are provided
             completionProvider: {
                 resolveProvider: true
             },
@@ -96,9 +98,8 @@ documents.onDidOpen(doc =>{
     validateTextDocument(doc.document);
 });
 
-// A change in the content of a document has occurred. This is allso called
-// when the documents is first opened
-/*documents.onDidChangeContent(change => {
+/*
+documents.onDidChangeContent(change => {
     validateTextDocument(change.document);
 });
 */
@@ -127,7 +128,6 @@ function checkPath(pattern, textDocument, diagnostics){
 
     while((m = pattern.exec(text))){
         let docUri = textDocument.uri;
-
         let lineNumber:number = textDocument.positionAt(m.index).line;
         let line:string = lines[lineNumber];
 
@@ -143,8 +143,7 @@ function checkPath(pattern, textDocument, diagnostics){
         
         let normalPath = normalize(Uri.parse(destinationUri).fsPath);
 
-        if (!existsSync(normalPath)&& line.includes("\"$ref\"")){
-
+        if (!existsSync(normalPath) && line.includes("\"$ref\"") && !line.includes("#/")){
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
                 range:{
@@ -173,22 +172,39 @@ function checkPath(pattern, textDocument, diagnostics){
 
 function validateTextDocument(textDocument: TextDocument) {
     let docDir = dirname(normalize(Uri.parse(textDocument.uri).fsPath));
-
     if(!existsSync(docDir)){
         return null;
     }
 
+<<<<<<< HEAD
     let application = buildApplicationSource(docDir);
     let position_app = buildApplicationSourcePostitions(docDir);
+=======
+>>>>>>> development
     let diagnostics: Diagnostic[] = [];
 
     let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
     checkPath(pattern,textDocument, diagnostics);
 
+    if(!hasSchema(docDir)){
+        connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
+        connection.sendNotification("custom/hasSchema", textDocument.uri);
+        return null;
+    }
+
+    let application = buildApplicationSource(docDir);
+    if (!application){
+        return null;
+    }
+    let position_app = buildApplicationSourcePostitions(docDir);
+    if (!position_app){
+        return null;
+    }
+
     const ajv = new Ajv({allErrors: true, verbose: true, errorDataPath: "property"});
-    const validator = ajv.compile(loadSchema(docDir));
+    let schema = loadSchema(docDir);
+    const validator = ajv.compile(schema);
     const validation = validator(application);
-    
     if (validation === true) {
         log(chalk.green('Application conforms to the schema'));
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
@@ -197,6 +213,8 @@ function validateTextDocument(textDocument: TextDocument) {
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
+            log(err.parentSchema);
+            log(err.schemaPath);
 
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
@@ -237,21 +255,71 @@ connection.onDidChangeWatchedFiles(change => {
     connection.console.log("We recieved an file change event");
 });
 
+
+function findReference(doc, schema){
+    let fileList = doc.split("20")[1].slice(1,-5).split("/");
+    let end = fileList[fileList.length-1].toLowerCase();
+    let next = schema.properties[fileList[0].toLowerCase()];
+    let pointer = JSON.stringify(next['$ref']).slice(0,-1);
+
+    let target = findKeysFromDataPath(pointer, schema).properties;
+    for (var key in target){
+        if (key.toLocaleLowerCase() === end){
+            let path = target[key]["$ref"];
+            return path;
+        }
+    }
+    return target;
+}
+function findKeysFromDataPath(dataPath, schema){
+    let arr = dataPath.split("/");
+    arr.shift();
+
+    let target = schema;
+    for (let i = 0; i<arr.length;i++){
+        target = target[arr[i]];
+    }
+    return target;
+}
+
+
 // Handler for completion items
 connection.onCompletion(
     (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-        return [
-            {
-                label: 'Dog',
-				kind: CompletionItemKind.Text,
-				data: 1
-			},
-			{
-				label: 'Cat',
-				kind: CompletionItemKind.Text,
-				data: 2
-			}    
-        ];
+        let docDir = dirname(normalize(Uri.parse(textDocumentPosition.textDocument.uri).fsPath));
+        let schema = loadSchema(docDir);
+        let doc = textDocumentPosition.textDocument.uri;
+        let end = doc.split("20")[1].slice(1,-5).split("/");
+
+        let lineNum = textDocumentPosition.position.line;
+        let line = documents.get(textDocumentPosition.textDocument.uri).getText(Range.create(Position.create(lineNum,0),Position.create(lineNum+1,0)));
+        let colon = line.indexOf(":");
+        if (textDocumentPosition.position.character >= colon){
+            return [];
+        }
+
+        if (end.length === 1){
+            let props = schema.properties;
+            let compArr = [];
+            for (var key in props){
+                const snippetCompletion = CompletionItem.create("\""+key);
+                snippetCompletion.kind = CompletionItemKind.Snippet;
+                compArr.push(snippetCompletion);
+            }
+            return compArr;
+        }
+        let ref = findReference(doc,schema);
+        while (typeof ref !== "object"){
+            ref = findKeysFromDataPath(ref,schema).properties;
+        }
+        let compArr = [];
+// tslint:disable-next-line: no-duplicate-variable
+        for (var key in ref){
+            const snippetCompletion = CompletionItem.create("\""+key);
+            snippetCompletion.kind = CompletionItemKind.Snippet;
+            compArr.push(snippetCompletion);
+        }
+        return compArr;
     }
 );
 
@@ -311,7 +379,7 @@ connection.onHover(({ textDocument, position }): Hover => {
 });
 
 // Handler for definition request
-connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):ls.Definition  => {
+connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams):Definition  => {
     if(textDocumentPositionParams.position.character<=1){
         return null;
     }
@@ -352,11 +420,7 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     return Location.create(destinationUri,range);
 });
 
-
-
-
 // Listen for open,close and change events for the doc manager
 documents.listen(connection);
-
 
 connection.listen();
