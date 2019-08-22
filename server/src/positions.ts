@@ -12,7 +12,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   var files = fs.readdirSync(dir);
   for(var i in files){
       if (!files.hasOwnProperty(i)) {continue;}
-      var name = dir+'/'+files[i];
+      var name = normalize(dir+'/'+files[i]);
       if (fs.statSync(name).isDirectory()){
           getFiles(name, fileList, fileName);
       } else {
@@ -89,7 +89,6 @@ function processNode(directory: string, node: any, stripLocalizationMarkers: boo
 }
 
 function processObject(directory: string, node: any, stripLocalizationMarkers: boolean, fileName): any {
-
   if (_.has(node, '$ref')) {
     return processReference(directory, node, stripLocalizationMarkers);
   } else {

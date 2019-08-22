@@ -10,7 +10,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   var files = fs.readdirSync(dir);
   for(var i in files){
       if (!files.hasOwnProperty(i)) {continue;}
-      var name = dir+'/'+files[i];
+      var name = normalize(dir+'/'+files[i]);
       if (fs.statSync(name).isDirectory()){
           getFiles(name, fileList, fileName);
       } else {
@@ -32,8 +32,7 @@ export function hasSchema(dir:string){
   }
   let root = dirname(dir);
 
-  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
-
+  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
   if(len<1){
@@ -45,14 +44,13 @@ export function hasSchema(dir:string){
   }
 }
 
-
 function getSchema(dir:string){
   while(basename(dir)!=="Application" && dir!=="c:\\"){
     dir=dirname(dir);
   }
   let root = dirname(dir);
 
-  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
+  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
   if(len<1){
@@ -88,7 +86,6 @@ export function buildApplicationSource(dirPath: string) {
       return null;
     }
     const application = doLoadApplication(applicationJsonPath);
-    //validate(application)
     return application;
 }
   

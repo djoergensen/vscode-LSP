@@ -406,7 +406,7 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     let folderUri = docUri.slice(0,-fileLetters);
     let fileUri = lines[lineNumber].slice(range.start.character,range.end.character);
     let properUri =fileUri.replace(/:/g,"/");
-    let destinationUri:string = folderUri+"/"+properUri+".json"; 
+    let destinationUri:string = folderUri+"/"+properUri+".json";
 
     let normalPath = normalize(Uri.parse(destinationUri).fsPath);
     if (!existsSync(Uri.parse(normalPath).fsPath)){
