@@ -1,7 +1,7 @@
 {
 	"name": "vscode-lsp",
 	"description": "A small LSP, adding programmatic language features to a json schema",
-	"version": "0.0.20",
+	"version": "0.0.21",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Johanpdrsn/vscode-LSP"
