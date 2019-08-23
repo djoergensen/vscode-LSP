@@ -4,7 +4,6 @@ const fs = require('fs');
 import {join, dirname, normalize, basename} from "path";
 const jsonlint = require('jsonlint').parser;
 import * as _ from 'lodash';
-import { existsSync } from 'fs';
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
