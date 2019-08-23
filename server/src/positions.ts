@@ -26,7 +26,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
+  while((basename(dir).length!==2 && basename(dir)!=="base") && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
     dir=dirname(dir);
   }
   if (dir===dirname(dir)){

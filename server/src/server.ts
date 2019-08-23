@@ -142,7 +142,6 @@ function checkPath(pattern, textDocument, diagnostics){
         let destinationUri:string = folderUri+"/"+properUri+".json"; 
         
         let normalPath = normalize(Uri.parse(destinationUri).fsPath);
-
         if (!existsSync(normalPath) && line.includes("\"$ref\"") && !line.includes("#/")){
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
@@ -178,7 +177,7 @@ function validateTextDocument(textDocument: TextDocument) {
 
     let diagnostics: Diagnostic[] = [];
 
-    let pattern = /(?!r)(?!e)(?!f)([a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
+    let pattern = /(?!r)(?!e)(?!f)(_?[a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
     checkPath(pattern,textDocument, diagnostics);
 
     if(!hasSchema(docDir)){

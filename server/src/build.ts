@@ -32,7 +32,7 @@ export function hasSchema(dir:string){
   }
   let root = dirname(dir);
 
-  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
+  let schemaPath = normalize(join(root, "Tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
   if(len<1){
@@ -65,7 +65,7 @@ function getSchema(dir:string){
 
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!==dirname(dir)){
+  while((basename(dir).length!==2 && basename(dir)!=="base") && basename(dir)!=="testFixture" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
   if (dir===dirname(dir)){
