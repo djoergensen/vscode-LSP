@@ -32,17 +32,19 @@ export function hasSchema(dir:string){
   }
   let root = dirname(dir);
 
-  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
-
+  let schemaPath = normalize(join(root, "Tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
-  if (len===1){
-    return true;
-  } else{
+  if(len<1){
+    log('No schemas found in workspace');
     return false;
+  }  else if(len>1){
+    log('More than 1 schema found in workspace');
+    return false;
+  } else {
+    return true;
   }
 }
-
 
 function getSchema(dir:string){
   while(basename(dir)!=="Application" && dir!==dirname(dir)){
@@ -56,7 +58,7 @@ function getSchema(dir:string){
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!==dirname(dir)){
+  while((basename(dir).length!==2 && basename(dir)!=="base") && basename(dir)!=="testFixture" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
   if (dir===dirname(dir)){
@@ -75,7 +77,6 @@ export function buildApplicationSource(dirPath: string) {
       return null;
     }
     const application = doLoadApplication(applicationJsonPath);
-    //validate(application)
     return application;
 }
   
@@ -161,7 +162,8 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
  */
 export function loadSchema(path:string): any {
   let schemaPath = normalize(getSchema(path));
-  const schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
-  const schema = JSON.parse(schemaFileHandle);
+  let schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
+  let schema = JSON.parse(schemaFileHandle);
+  log(`Loaded schema from ${chalk.green(schemaPath)}`);
   return schema;
 }

@@ -25,7 +25,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
+  while((basename(dir).length!==2 && basename(dir)!=="base") && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
     dir=dirname(dir);
   }
   if (dir===dirname(dir)){
@@ -42,7 +42,6 @@ export function buildApplicationSourcePostitions(dirPath: string) {
     return null;
   }
   const application = doLoadApplication(applicationJsonPath);
-  //validate(application)
   return application;
 }
   
@@ -81,7 +80,6 @@ function processNode(directory: string, node: any, stripLocalizationMarkers: boo
 }
 
 function processObject(directory: string, node: any, stripLocalizationMarkers: boolean, fileName): any {
-
   if (_.has(node, '$ref')) {
     return processReference(directory, node, stripLocalizationMarkers);
   } else {

@@ -1,4 +1,4 @@
-import {ExtensionContext, workspace, window} from 'vscode';
+import {ExtensionContext, workspace, window, version, extensions} from 'vscode';
 import {join} from "path";
 import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind, NotificationType, GenericNotificationHandler} from "vscode-languageclient";
 
@@ -32,7 +32,7 @@ export function activate(context: ExtensionContext) {
 	client = new LanguageClient(
 		"languageServer",
 		"Language Server",
-		serverOptions,
+		serverOptions.debug,
 		clientOptions
 	);
 	
@@ -42,6 +42,7 @@ export function activate(context: ExtensionContext) {
 			" vscode-lsp plugin will have limitied functionality");
 		});
 	});
+
 
 	client.start();
 
