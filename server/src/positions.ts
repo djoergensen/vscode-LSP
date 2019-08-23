@@ -11,7 +11,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   var files = fs.readdirSync(dir);
   for(var i in files){
       if (!files.hasOwnProperty(i)) {continue;}
-      var name = dir+'/'+files[i];
+      var name = normalize(dir+'/'+files[i]);
       if (fs.statSync(name).isDirectory()){
           getFiles(name, fileList, fileName);
       } else {
@@ -25,10 +25,10 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!=="c:\\"){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
     dir=dirname(dir);
   }
-  if (dir==="c:\\"){
+  if (dir===dirname(dir)){
     return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");

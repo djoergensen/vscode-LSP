@@ -10,7 +10,7 @@ function getFiles(dir:string, fileList:string[], fileName:string){
   var files = fs.readdirSync(dir);
   for(var i in files){
       if (!files.hasOwnProperty(i)) {continue;}
-      var name = dir+'/'+files[i];
+      var name = normalize(dir+'/'+files[i]);
       if (fs.statSync(name).isDirectory()){
           getFiles(name, fileList, fileName);
       } else {
@@ -24,15 +24,15 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 export function hasSchema(dir:string){
-  while(basename(dir)!=="Application" && dir!=="c:\\"){
+  while(basename(dir)!=="Application" && dir!==dirname(dir)){
     dir = dirname(dir);
   }
-  if (dir ==="c:\\"){
+  if (dir ===dirname(dir)){
     return false;
   }
   let root = dirname(dir);
 
-  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
+  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
 
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
@@ -41,21 +41,21 @@ export function hasSchema(dir:string){
 
 
 function getSchema(dir:string){
-  while(basename(dir)!=="Application" && dir!=="c:\\"){
+  while(basename(dir)!=="Application" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
   let root = dirname(dir);
 
-  let schemaPath = join(root, "tools", "core", "dist", "dev", "web");
+  let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   return schemaArray[0];
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!=="c:\\"){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
-  if (dir==="c:\\"){
+  if (dir===dirname(dir)){
     return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");
@@ -156,7 +156,7 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
  * @returns {object} the schema
  */
 export function loadSchema(path:string): any {
-  let schemaPath = getSchema(path);
+  let schemaPath = normalize(getSchema(path));
   const schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
   const schema = JSON.parse(schemaFileHandle);
   return schema;
