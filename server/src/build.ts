@@ -24,10 +24,10 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 export function hasSchema(dir:string){
-  while(basename(dir)!=="Application" && dir!=="c:\\"){
+  while(basename(dir)!=="Application" && dir!==dirname(dir)){
     dir = dirname(dir);
   }
-  if (dir ==="c:\\"){
+  if (dir ===dirname(dir)){
     return false;
   }
   let root = dirname(dir);
@@ -45,7 +45,7 @@ export function hasSchema(dir:string){
 }
 
 function getSchema(dir:string){
-  while(basename(dir)!=="Application" && dir!=="c:\\"){
+  while(basename(dir)!=="Application" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
   let root = dirname(dir);
@@ -63,10 +63,10 @@ function getSchema(dir:string){
 
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!=="c:\\"){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && dir!==dirname(dir)){
     dir=dirname(dir);
   }
-  if (dir==="c:\\"){
+  if (dir===dirname(dir)){
     return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");
@@ -157,7 +157,6 @@ function processArray(directory: string, node: any, stripLocalizationMarkers: bo
 
 function reportSyntaxError(filename: string, e: SyntaxError) {
   try {
-    log("PARSING");
     jsonlint.parse(fs.readFileSync(filename, 'utf8'));
   } catch (e) {
     log(chalk.white.bgRed.bold('--------------------------------------------'));
@@ -172,9 +171,9 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
  * @returns {object} the schema
  */
 export function loadSchema(path:string): any {
-  let schemaPath = getSchema(path);
-  const schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
-  const schema = JSON.parse(schemaFileHandle);
+  let schemaPath = normalize(getSchema(path));
+  let schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
+  let schema = JSON.parse(schemaFileHandle);
   log(`Loaded schema from ${chalk.green(schemaPath)}`);
   return schema;
 }
