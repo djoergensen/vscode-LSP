@@ -26,10 +26,10 @@ function getFiles(dir:string, fileList:string[], fileName:string){
 }
 
 function getApplication(dir:string){
-  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!=="c:\\"){
+  while(basename(dir).length!==2 && basename(dir)!=="testFixture" && basename(dir)!==dirname(dir)){
     dir=dirname(dir);
   }
-  if (dir==="c:\\"){
+  if (dir===dirname(dir)){
     return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");
@@ -49,7 +49,6 @@ export function buildApplicationSourcePostitions(dirPath: string) {
     return null;
   }
   const application = doLoadApplication(applicationJsonPath);
-  //validate(application)
   return application;
 }
   
