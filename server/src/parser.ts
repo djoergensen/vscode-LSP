@@ -1,5 +1,3 @@
-const log = require('fancy-log');
-
 let escapedChars = {
   'b': '\b',
   'f': '\f',

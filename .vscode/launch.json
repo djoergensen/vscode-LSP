@@ -7,7 +7,7 @@
 			"request": "launch",
 			"name": "Launch Client",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
 			"outFiles": ["${workspaceFolder}/client/out/**/*.js"],
 			"preLaunchTask": {
 				"type": "npm",
