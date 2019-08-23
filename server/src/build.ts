@@ -4,6 +4,7 @@ const fs = require('fs');
 import {join, dirname, normalize, basename} from "path";
 const jsonlint = require('jsonlint').parser;
 import * as _ from 'lodash';
+import { existsSync } from 'fs';
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
@@ -36,7 +37,11 @@ export function hasSchema(dir:string){
 
   let schemaArray = getFiles(schemaPath,[], "schema.json");
   let len = schemaArray.length;
-  return true;
+  if (len===1){
+    return true;
+  } else{
+    return false;
+  }
 }
 
 
