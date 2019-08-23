@@ -37,8 +37,10 @@ export function hasSchema(dir:string){
   let len = schemaArray.length;
   if(len<1){
     log('No schemas found in workspace');
+    return false;
   }  else if(len>1){
     log('More than 1 schema found in workspace');
+    return false;
   } else {
     return true;
   }
