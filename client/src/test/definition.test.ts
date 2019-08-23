@@ -3,20 +3,20 @@ import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 
 describe('Should go to definition', () => {
-	const docUri = getDocUri('application.json');
-	const docTarget=getDocUri('Shell/Shell.json');
+	const docUri = getDocUri('Application/application.json');
+	const docTarget=getDocUri('Application/Shell/Shell.json');
 
-	const platformUri = getDocUri('Platform/Platform.json');
-	const platformTarget = getDocUri('Platform/Containers.json');
+	const platformUri = getDocUri('Application/Platform/Platform.json');
+	const platformTarget = getDocUri('Application/Platform/Containers.json');
 
-	const shellUri = getDocUri('Shell/Shell.json');
-	const shellTarget = getDocUri('Shell/Menu.json');
+	const shellUri = getDocUri('Application/Shell/Shell.json');
+	const shellTarget = getDocUri('Application/Shell/Menu.json');
 
-	const workspaceUri = getDocUri('Workspace/Workspace.json');
-	const workspaceTarget = getDocUri('Workspace/Jobs/JobEstimation/JobEstimation.json');
+	const workspaceUri = getDocUri('Application/Workspace/Workspace.json');
+	const workspaceTarget = getDocUri('Application/Workspace/Jobs/JobEstimation/JobEstimation.json');
 
-	const dailyTimeSheetsUri = getDocUri('Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
-	const dailyTimeSheetsTarget = getDocUri('Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets_ActionBar.json');
+	const dailyTimeSheetsUri = getDocUri('Application/Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
+	const dailyTimeSheetsTarget = getDocUri('Application/Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets_ActionBar.json');
 
 	it('Goes to definition if path is complete', async () => {
 		await testDefinition(docUri, new vscode.Position(10, 21), [new vscode.Location(docTarget, new vscode.Range(10,13,10,24))]);

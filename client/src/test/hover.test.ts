@@ -3,11 +3,11 @@ import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 import {Hover} from "vscode-languageserver";
 describe('Should provide hovers', () => {
-	const docUri = getDocUri('application.json');
-	const platformUri = getDocUri('Platform/Platform.json');
-	const shellUri = getDocUri('Shell/Shell.json');
-	const workspaceUri = getDocUri('Workspace/Workspace.json');
-	const dailyTimeSheetsUri = getDocUri('Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
+	const docUri = getDocUri('Application/application.json');
+	const platformUri = getDocUri('Application/Platform/Platform.json');
+	const shellUri = getDocUri('Application/Shell/Shell.json');
+	const workspaceUri = getDocUri('Application/Workspace/Workspace.json');
+	const dailyTimeSheetsUri = getDocUri('Application/Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
 
 	it('Hovers no path or instruction', async () => {
 		await testHover(docUri, new vscode.Position(10, 21), [{contents: "Ctrl + click to follow path", range:{start:{line: 10, character: 12}, end:{line:10,character:25}}}]);

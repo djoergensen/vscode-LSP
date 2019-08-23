@@ -4,11 +4,11 @@ import * as assert from 'assert';
 import { getDocUri, activate, sleep } from './helper';
 
 describe('Should get diagnostics', () => {
-  const docUri = getDocUri('application.json');
-  const platformUri = getDocUri('Platform/Platform.json');
-	const shellUri = getDocUri('Shell/Notifications.json');
-	const workspaceUri = getDocUri('Workspace/Workspace.json');
-	const dailyTimeSheetsUri = getDocUri('Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
+  const docUri = getDocUri('Application/application.json');
+  const platformUri = getDocUri('Application/Platform/Platform.json');
+	const shellUri = getDocUri('Application/Shell/Notifications.json');
+	const workspaceUri = getDocUri('Application/Workspace/Workspace.json');
+	const dailyTimeSheetsUri = getDocUri('Application/Workspace/EmployeeSelfService/DailyTimeSheets/DailyTimeSheets.json');
 
   it('Diagnoses invalid keys and references', async () => {
     await testDiagnostics(docUri, [{ message: 'Authentication:Authenticatio is not a valid path.',
