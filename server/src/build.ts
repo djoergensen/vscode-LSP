@@ -54,8 +54,15 @@ function getSchema(dir:string){
 
   let schemaPath = normalize(join(root, "tools", "core", "dist", "dev", "web"));
   let schemaArray = getFiles(schemaPath,[], "schema.json");
+  let len = schemaArray.length;
+  if(len<1){
+    log('No schemas found in workspace');
+  }  else if(len>1){
+    log('More than 1 schema found in workspace');
+  }
   return schemaArray[0];
 }
+
 
 function getApplication(dir:string){
   while((basename(dir).length!==2 && basename(dir)!=="base") && basename(dir)!=="testFixture" && dir!==dirname(dir)){
@@ -66,7 +73,11 @@ function getApplication(dir:string){
   }
   let applicationArray = getFiles(dir,[], "application.json");
   let len = applicationArray.length;
-
+  if(len<1){
+    log('No applications found in workspace');
+  }  else if(len>1){
+    log('More than 1 application found in workspace');
+  }
   return applicationArray[0];
 }
 
@@ -83,6 +94,7 @@ export function buildApplicationSource(dirPath: string) {
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
     const application = resolveJsonRefs(applicationJsonPath, true);
     application['terms'] = {};
+    log(`Loaded application from ${chalk.green(applicationJsonPath)}`);
     return application;
 }
 

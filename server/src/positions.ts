@@ -1,4 +1,5 @@
 const chalk = require("chalk");
+const log = require('fancy-log');
 const fs = require('fs');
 import {join, dirname, normalize, basename} from "path";
 const jsonlint = require('jsonlint').parser;
@@ -32,6 +33,12 @@ function getApplication(dir:string){
     return null;
   }
   let applicationArray = getFiles(dir,[], "application.json");
+  let len = applicationArray.length;
+  if(len<1){
+    log('No applications found in workspace');
+  }  else if(len>1){
+    log('More than 1 application found in workspace');
+  }
   return applicationArray[0];
 }
 
@@ -47,6 +54,7 @@ export function buildApplicationSourcePostitions(dirPath: string) {
   
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
   const application = resolveJsonRefs(applicationJsonPath, true);
+  log(`Loaded application with positions from ${chalk.green(applicationJsonPath)}`);
   return application;
 }
   
