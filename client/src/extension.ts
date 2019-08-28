@@ -1,10 +1,9 @@
-import {ExtensionContext, workspace, window, version, extensions} from 'vscode';
+import {ExtensionContext, workspace, window} from 'vscode';
 import {join} from "path";
 import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind, NotificationType, GenericNotificationHandler} from "vscode-languageclient";
 
 let client : LanguageClient;
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+
 export function activate(context: ExtensionContext) {
 
 	let serverModule = context.asAbsolutePath(

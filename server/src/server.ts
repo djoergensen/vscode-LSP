@@ -338,6 +338,10 @@ connection.onHover(({ textDocument, position }): Hover => {
 
     let lines = text.split("\n");
     let lineNumber:number = position.line;
+    if (!lines[lineNumber].includes("$ref")){
+        return null;
+    }
+
     let startCharNumber:number = position.character;
     let endCharNumber:number = position.character;
     while (lines[lineNumber][startCharNumber]!=="\"" && startCharNumber > 1){
@@ -381,6 +385,10 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
 
     let lines = text.split("\n");
     let lineNumber:number = textDocumentPositionParams.position.line;
+    if(!lines[lineNumber].includes("$ref")){
+        return null;
+    }
+
     let startCharNumber:number = textDocumentPositionParams.position.character;
     let endCharNumber:number = textDocumentPositionParams.position.character;
     while (lines[lineNumber][startCharNumber]!=="\"" && startCharNumber > 1){
