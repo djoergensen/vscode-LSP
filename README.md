@@ -17,6 +17,8 @@ If a path exists, you can use Ctrl + click to open the referenced file, or right
 
 Besides providing diagnostics for the "$ref":"URI" pattern, vscode-LSP also checks if a schema is provided for the application and validates against it. Thus it will provide diagnostics
 for properties, where there are missing requiered properties, or unallowed additional proporties.
+
+It is important to notice that the extension uses the saved file, and will thus only update upon saving a file with changes.
 # Development
 ### Prerequisites
 Only prerequisite for using the extension is Visual Studio Code
