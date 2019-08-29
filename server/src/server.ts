@@ -2,7 +2,7 @@
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
     ProposedFeatures, Definition} from "vscode-languageserver";
-import Uri from 'vscode-uri';
+import {URI} from 'vscode-uri';
 import {existsSync} from "fs";
 import {normalize, dirname} from "path";
 import {buildApplicationSource, loadSchema, hasSchema} from "./build";
@@ -141,7 +141,7 @@ function checkPath(pattern, textDocument, diagnostics){
         let properUri = relativeUri.replace(/:/g,"/");
         let destinationUri:string = folderUri+"/"+properUri+".json"; 
         
-        let normalPath = normalize(Uri.parse(destinationUri).fsPath);
+        let normalPath = normalize(URI.parse(destinationUri).fsPath);
         if (!existsSync(normalPath) && line.includes("\"$ref\"") && !line.includes("#/")){
             let diagnostic: Diagnostic = {
                 severity: DiagnosticSeverity.Warning,
@@ -170,7 +170,7 @@ function checkPath(pattern, textDocument, diagnostics){
 
 
 function validateTextDocument(textDocument: TextDocument) {
-    let docDir = dirname(normalize(Uri.parse(textDocument.uri).fsPath));
+    let docDir = dirname(normalize(URI.parse(textDocument.uri).fsPath));
     if(!existsSync(docDir)){
         return null;
     }
@@ -214,8 +214,8 @@ function validateTextDocument(textDocument: TextDocument) {
             if (!target){continue;}
             let path = target.dir;
 
-            if (path && Uri.file(path).toString() === textDocument.uri){
-                let doc = documents.get(Uri.file(path).toString());
+            if (path && URI.file(path).toString() === textDocument.uri){
+                let doc = documents.get(URI.file(path).toString());
         
                 let diagnostic: Diagnostic = {
                     severity: DiagnosticSeverity.Warning,
@@ -280,7 +280,7 @@ function findKeysFromDataPath(dataPath, schema){
 // Handler for completion items
 connection.onCompletion(
     (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-        let docDir = dirname(normalize(Uri.parse(textDocumentPosition.textDocument.uri).fsPath));
+        let docDir = dirname(normalize(URI.parse(textDocumentPosition.textDocument.uri).fsPath));
         let schema = loadSchema(docDir);
         let doc = textDocumentPosition.textDocument.uri;
         let end = doc.split("20")[1].slice(1,-5).split("/");
@@ -368,7 +368,7 @@ connection.onHover(({ textDocument, position }): Hover => {
     let properUri = relativeUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json"; 
 
-    let normalPath = normalize(Uri.parse(destinationUri).fsPath);
+    let normalPath = normalize(URI.parse(destinationUri).fsPath);
 
     if (!existsSync(normalPath)){
         return null;
@@ -415,8 +415,8 @@ connection.onDefinition((textDocumentPositionParams: TextDocumentPositionParams)
     let properUri =fileUri.replace(/:/g,"/");
     let destinationUri:string = folderUri+"/"+properUri+".json";
 
-    let normalPath = normalize(Uri.parse(destinationUri).fsPath);
-    if (!existsSync(Uri.parse(normalPath).fsPath)){
+    let normalPath = normalize(URI.parse(destinationUri).fsPath);
+    if (!existsSync(URI.parse(normalPath).fsPath)){
         return null;
     }
     return Location.create(destinationUri,range);

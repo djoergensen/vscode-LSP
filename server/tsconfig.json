@@ -6,8 +6,8 @@
 		"sourceMap": true,
 		"outDir": "out",
 		"rootDir": "src",
-		"lib": ["es7", "dom"]
+		"lib": ["es6"]
 	},
 	"include": ["src"],
-	"exclude": ["node_modules", ".vscode-test", "refTree.ts"]
+	"exclude": ["node_modules", ".vscode-test"]
 }

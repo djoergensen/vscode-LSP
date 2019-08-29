@@ -1,6 +1,6 @@
-import {ExtensionContext, workspace, window, version, extensions} from 'vscode';
+import {ExtensionContext, workspace, window} from 'vscode';
 import {join} from "path";
-import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind, NotificationType, GenericNotificationHandler} from "vscode-languageclient";
+import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
 
 let client : LanguageClient;
 // this method is called when your extension is activated
