@@ -1,10 +1,9 @@
-const chalk = require("chalk");
-const log = require('fancy-log');
-const fs = require('fs');
 import {join, dirname, normalize, basename} from "path";
 import * as _ from 'lodash';
 import {positionParse} from "./parser";
-
+import log = require('fancy-log');
+const chalk = require("chalk");
+const fs = require('fs');
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];

@@ -7,10 +7,10 @@ import {existsSync} from "fs";
 import {normalize, dirname} from "path";
 import {buildApplicationSource, loadSchema, hasSchema} from "./build";
 import {buildApplicationSourcePostitions} from "./positions";
-
+import log = require('fancy-log');
+import Ajv = require('Ajv');
 const chalk = require("chalk");
-const log = require('fancy-log');
-const Ajv = require('Ajv');
+
 
 // Connect to the server
 let connection =  createConnection(ProposedFeatures.all);
@@ -50,8 +50,7 @@ connection.onInitialized(()=> {
         connection.client.register(
             DidChangeConfigurationNotification.type,
             undefined
-        );
-        
+        );  
     }
     if (hasWorkspaceFolderCapability){
         connection.workspace.onDidChangeWorkspaceFolders(event => {

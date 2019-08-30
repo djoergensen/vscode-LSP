@@ -1,8 +1,8 @@
-const chalk = require("chalk");
-const log = require('fancy-log');
-const fs = require('fs');
+import log = require('fancy-log');
 import {join, dirname, normalize, basename} from "path";
 import * as _ from 'lodash';
+const chalk = require("chalk");
+const fs = require('fs');
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
