@@ -1,7 +1,7 @@
 
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
-    ProposedFeatures, Definition} from "vscode-languageserver";
+    ProposedFeatures, Definition, DidOpenTextDocumentNotification} from "vscode-languageserver";
 import {URI} from 'vscode-uri';
 import {existsSync} from "fs";
 import {normalize, dirname} from "path";
@@ -103,11 +103,6 @@ documents.onDidChangeContent(change => {
 });
 */
 function findTarget(dataPath, application, params){
-    for (var key in params){
-        if (key.includes("missingProperty")){
-            return null;
-        }
-    }
     let fileList = dataPath.split(/[.\'\[\]]+/);
     fileList.pop();
     fileList.shift();
@@ -206,42 +201,67 @@ function validateTextDocument(textDocument: TextDocument) {
         // pretty printing the error object
         for (const err of validator.errors) {
             log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
-            log(err.parentSchema);
-            log(err.schemaPath);
+            //log(err.parentSchema);
+            //log(err.schemaPath);
 
             let target = findTarget(err.dataPath, position_app, err.params);
             if (!target){continue;}
-            let path = target.dir;
 
-            if (path && URI.file(path).toString() === textDocument.uri){
-                let doc = documents.get(URI.file(path).toString());
-        
-                let diagnostic: Diagnostic = {
-                    severity: DiagnosticSeverity.Warning,
-                    range:{
-                        start: doc.positionAt(target.pos),
-                        end: doc.positionAt(target.posEnd)
-                    },
-                    message: `- ${err.dataPath || '.'} ${err.message}`,
-                    source: "vscode-lsp"
-                };
-                if (hasDiagnosticRelatedInformationCapability){
-                    let errorMessage:string = JSON.stringify(err.params);
-                    diagnostic.relatedInformation = [
-                        {
-                            location: {
-                                uri: doc.uri,
-                                range: Object.assign({}, diagnostic.range)
-                            },
-                            message: errorMessage
-                        }
-                    ];
-                }   
-                diagnostics.push(diagnostic);
-            }       
+            let path = target.dir;
+            let docUri = URI.file(path).toString();
+            let diagnostic: Diagnostic = {
+                severity: DiagnosticSeverity.Warning,
+                range:{
+                    start: Position.create(target.line, target.column),
+                    end: Position.create(target.lineEnd, target.columnEnd)
+                },
+                message: `- ${err.dataPath || '.'} ${err.message}`,
+                source: "vscode-lsp"
+            };
+            if (hasDiagnosticRelatedInformationCapability){
+                let errorMessage:string = JSON.stringify(err.params);
+                diagnostic.relatedInformation = [
+                    {
+                        location: {
+                            uri: docUri,
+                            range: diagnostic.range
+                        },
+                        message: errorMessage
+                    }
+                ];
+            }   
+            diagnostics.push(diagnostic);            
         }
-        connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
+        sendDiagnostics(diagnostics);
     }
+}
+function sendDiagnostics(diagnostics:Diagnostic[]){
+    diagnostics.sort(compare);
+    let startUri = diagnostics[0].relatedInformation[0].location.uri;
+    let tempDiagnostics: Diagnostic[] = [];
+    diagnostics.forEach(dia => {
+        log(dia.relatedInformation[0].location.uri);
+        if (dia.relatedInformation[0].location.uri === startUri){
+            tempDiagnostics.push(dia);
+        } else{
+            connection.sendDiagnostics({uri:startUri, diagnostics:tempDiagnostics});
+            startUri = dia.relatedInformation[0].location.uri;
+            tempDiagnostics = [];
+            tempDiagnostics.push(dia);
+        }
+    }); 
+    connection.sendDiagnostics({uri:startUri, diagnostics:tempDiagnostics});
+}
+
+
+function compare( a, b ) {
+    if ( a.relatedInformation[0].location.uri < b.relatedInformation[0].location.uri ){
+      return -1;
+    }
+    if ( a.relatedInformation[0].location.uri > b.relatedInformation[0].location.uri ){
+      return 1;
+    }
+    return 0;
 }
 
 connection.onDidChangeWatchedFiles(change => {

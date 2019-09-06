@@ -11,6 +11,8 @@ export function activate(context: ExtensionContext) {
 		join("server", "out", "server.js")
 	);
 
+	
+
 	let debugOptions = {execArgv:["--nolazy", "--inspect=6009"]};
 
 	let serverOptions: ServerOptions = {
