@@ -120,17 +120,16 @@ function checkPath(pattern, textDocument, diagnostics){
     let lines = text.split("\n");
     let m: RegExpExecArray | null;
 
-    while((m = pattern.exec(text))){
-        let docUri = textDocument.uri;
+    while(m = pattern.exec(text)){
         let lineNumber:number = textDocument.positionAt(m.index).line;
         let line:string = lines[lineNumber];
 
-        let len = docUri.length;
+        let len = textDocument.uri.length;
         let fileLetters = 0;
-        while(docUri[len-fileLetters]!=="/"){
+        while(textDocument.uri[len-fileLetters]!=="/"){
             fileLetters++;
         }
-        let folderUri = docUri.slice(0,-fileLetters);
+        let folderUri = textDocument.uri.slice(0,-fileLetters);
         let relativeUri:string = line.slice(textDocument.positionAt(m.index).character, textDocument.positionAt(m.index+m[0].length).character);
         let properUri = relativeUri.replace(/:/g,"/");
         let destinationUri:string = folderUri+"/"+properUri+".json"; 
@@ -151,7 +150,7 @@ function checkPath(pattern, textDocument, diagnostics){
                     {
                         location: {
                             uri: textDocument.uri,
-                            range: Object.assign({}, diagnostic.range)
+                            range: diagnostic.range
                         },
                         message: "This reference cannot be found"
                     }
