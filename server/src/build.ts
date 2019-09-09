@@ -1,9 +1,8 @@
-const chalk = require("chalk");
-const log = require('fancy-log');
-const fs = require('fs');
+import log = require('fancy-log');
 import {join, dirname, normalize, basename} from "path";
-const jsonlint = require('jsonlint').parser;
 import * as _ from 'lodash';
+const chalk = require("chalk");
+const fs = require('fs');
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
@@ -159,7 +158,7 @@ function processArray(directory: string, node: any, stripLocalizationMarkers: bo
 
 function reportSyntaxError(filename: string, e: SyntaxError) {
   try {
-    jsonlint.parse(fs.readFileSync(filename, 'utf8'));
+    JSON.parse(fs.readFileSync(filename, 'utf8'));
   } catch (e) {
     log(chalk.white.bgRed.bold('--------------------------------------------'));
     log(chalk.white.bgRed.bold(`Syntax Error in ${filename}`));

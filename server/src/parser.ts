@@ -134,9 +134,11 @@ export function positionParse (source) {
       if (getChar() !== '"') { wasUnexpectedToken(); }
  
       let oldpos = pos;
+      let oldLine = line;
+      let oldColumn = column; 
       let key = parseString();
       let metaKey = "meta" + key;
-      obj[metaKey] = {pos: pos, posEnd: oldpos};
+      obj[metaKey] = {pos: pos, posEnd: oldpos, line: line, lineEnd: oldLine, column:column, columnEnd: oldColumn};
 
       let propPtr = ptr + '/' + escapeJsonPointer(key);
       whitespace();

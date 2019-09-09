@@ -1,6 +1,6 @@
 import {ExtensionContext, workspace, window} from 'vscode';
 import {join} from "path";
-import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind, NotificationType, GenericNotificationHandler} from "vscode-languageclient";
+import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
 
 let client : LanguageClient;
 
@@ -9,6 +9,8 @@ export function activate(context: ExtensionContext) {
 	let serverModule = context.asAbsolutePath(
 		join("server", "out", "server.js")
 	);
+
+	
 
 	let debugOptions = {execArgv:["--nolazy", "--inspect=6009"]};
 
