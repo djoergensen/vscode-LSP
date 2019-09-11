@@ -1,7 +1,7 @@
 
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
-    ProposedFeatures, Definition, DidOpenTextDocumentNotification} from "vscode-languageserver";
+    ProposedFeatures, Definition} from "vscode-languageserver";
 import {URI} from 'vscode-uri';
 import {existsSync} from "fs";
 import {normalize, dirname} from "path";
@@ -102,7 +102,7 @@ documents.onDidChangeContent(change => {
     validateTextDocument(change.document);
 });
 */
-function findTarget(dataPath, application, params){
+function findTarget(dataPath, application){
     let fileList = dataPath.split(/[.\'\[\]]+/);
     fileList.pop();
     fileList.shift();
@@ -203,7 +203,7 @@ function validateTextDocument(textDocument: TextDocument) {
             //log(err.parentSchema);
             //log(err.schemaPath);
 
-            let target = findTarget(err.dataPath, position_app, err.params);
+            let target = findTarget(err.dataPath, position_app);
             if (!target){continue;}
 
             let path = target.dir;
