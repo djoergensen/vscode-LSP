@@ -1,0 +1,26 @@
+{
+	"Print to console": {
+		"prefix": "log",
+		"body": [
+			"console.log('$1');"
+		],
+		"description": "Log output to console"
+	},
+	"Field": {
+		"prefix": "field",
+		"body": [
+			"\"field\": {",
+			"  \"source\": \"$1\"",
+			"}"
+		],
+		"description": "Field template"
+	},
+	"Text": {
+		"prefix": "text",
+		"body": [
+			"\"text\":{",
+			"$1",
+			"}"
+		]
+	}
+}
