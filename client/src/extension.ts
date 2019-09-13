@@ -3,8 +3,7 @@ import {join} from "path";
 import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
 
 let client : LanguageClient;
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+
 export function activate(context: ExtensionContext) {
 
 	let serverModule = context.asAbsolutePath(

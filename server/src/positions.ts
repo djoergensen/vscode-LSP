@@ -98,7 +98,6 @@ function processObject(directory: string, node: any, stripLocalizationMarkers: b
       object[key] = processNode(directory, value, stripLocalizationMarkers, fileName);
       object["dir"] = fileName;
     });
-    //log(object);
     return object;
   }
 }

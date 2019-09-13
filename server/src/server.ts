@@ -1,7 +1,11 @@
 
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
+<<<<<<< HEAD
     TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
     ProposedFeatures, Definition} from "vscode-languageserver";
+=======
+    TextDocumentPositionParams, Position, Location, Range, Hover, createConnection,ProposedFeatures, Definition} from "vscode-languageserver";
+>>>>>>> master
 import {URI} from 'vscode-uri';
 import {existsSync} from "fs";
 import {normalize, dirname} from "path";
@@ -35,9 +39,6 @@ connection.onInitialize((params: InitializeParams)=>{
             openClose: true,
             textDocumentSync: documents.syncKind,
             // Tell client what services are provided
-            completionProvider: {
-                resolveProvider: true
-            },
             hoverProvider:true,
             definitionProvider:true
         }
@@ -239,7 +240,6 @@ function sendDiagnostics(diagnostics:Diagnostic[]){
     let startUri = diagnostics[0].relatedInformation[0].location.uri;
     let tempDiagnostics: Diagnostic[] = [];
     diagnostics.forEach(dia => {
-        log(dia.relatedInformation[0].location.uri);
         if (dia.relatedInformation[0].location.uri === startUri){
             tempDiagnostics.push(dia);
         } else{
@@ -267,88 +267,6 @@ connection.onDidChangeWatchedFiles(change => {
     connection.console.log("We recieved an file change event");
 });
 
-
-function findReference(doc, schema){
-    let fileList = doc.split("20")[1].slice(1,-5).split("/");
-    let end = fileList[fileList.length-1].toLowerCase();
-    let next = schema.properties[fileList[0].toLowerCase()];
-    let pointer = JSON.stringify(next['$ref']).slice(0,-1);
-
-    let target = findKeysFromDataPath(pointer, schema).properties;
-    for (var key in target){
-        if (key.toLocaleLowerCase() === end){
-            let path = target[key]["$ref"];
-            return path;
-        }
-    }
-    return target;
-}
-function findKeysFromDataPath(dataPath, schema){
-    let arr = dataPath.split("/");
-    arr.shift();
-
-    let target = schema;
-    for (let i = 0; i<arr.length;i++){
-        target = target[arr[i]];
-    }
-    return target;
-}
-
-
-// Handler for completion items
-connection.onCompletion(
-    (textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-        let docDir = dirname(normalize(URI.parse(textDocumentPosition.textDocument.uri).fsPath));
-        let schema = loadSchema(docDir);
-        let doc = textDocumentPosition.textDocument.uri;
-        let end = doc.split("20")[1].slice(1,-5).split("/");
-
-        let lineNum = textDocumentPosition.position.line;
-        let line = documents.get(textDocumentPosition.textDocument.uri).getText(Range.create(Position.create(lineNum,0),Position.create(lineNum+1,0)));
-        let colon = line.indexOf(":");
-        if (textDocumentPosition.position.character >= colon){
-            return [];
-        }
-
-        if (end.length === 1){
-            let props = schema.properties;
-            let compArr = [];
-            for (var key in props){
-                const snippetCompletion = CompletionItem.create("\""+key);
-                snippetCompletion.kind = CompletionItemKind.Snippet;
-                compArr.push(snippetCompletion);
-            }
-            return compArr;
-        }
-        let ref = findReference(doc,schema);
-        while (typeof ref !== "object"){
-            ref = findKeysFromDataPath(ref,schema).properties;
-        }
-        let compArr = [];
-// tslint:disable-next-line: no-duplicate-variable
-        for (var key in ref){
-            const snippetCompletion = CompletionItem.create("\""+key);
-            snippetCompletion.kind = CompletionItemKind.Snippet;
-            compArr.push(snippetCompletion);
-        }
-        return compArr;
-    }
-);
-
-
-// Resolver add additional information on the item from the completion list
-connection.onCompletionResolve((
-    item: CompletionItem): CompletionItem => {
-        if (item.data = 1){
-            (item.detail= "Dogs are happy"),
-            (item.documentation="Pet one to see yourself");
-        }else if(item.data === 2){
-            (item.detail= "Cats are angry"),
-            (item.documentation="Don't go too close");
-        }
-        return item;
-    }
-);
 
 // Handler for hover
 connection.onHover(({ textDocument, position }): Hover => {

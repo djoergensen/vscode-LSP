@@ -30,7 +30,8 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/client/out/test",
-				"${workspaceFolder}/client/testFixture"
+				"${workspaceFolder}/client/testFixture",
+				"--disable-extensions"
 			],
 			"outFiles": ["${workspaceFolder}/client/out/test/**/*.js"],
 			"preLaunchTask": {
