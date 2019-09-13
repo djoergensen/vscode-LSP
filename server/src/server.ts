@@ -1,11 +1,6 @@
 
 import { TextDocument, TextDocuments, InitializeParams, DidChangeConfigurationNotification, Diagnostic, DiagnosticSeverity,
-<<<<<<< HEAD
-    TextDocumentPositionParams, CompletionItem, CompletionItemKind, Position, Location, Range, Hover, createConnection,
-    ProposedFeatures, Definition} from "vscode-languageserver";
-=======
     TextDocumentPositionParams, Position, Location, Range, Hover, createConnection,ProposedFeatures, Definition} from "vscode-languageserver";
->>>>>>> master
 import {URI} from 'vscode-uri';
 import {existsSync} from "fs";
 import {normalize, dirname} from "path";
