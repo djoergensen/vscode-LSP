@@ -166,7 +166,7 @@ function validateTextDocument(textDocument: TextDocument) {
 
     let diagnostics: Diagnostic[] = [];
 
-    let pattern = /(?!r)(?!e)(?!f)(_?[a-zA-Z]+:?)+[a-zA-Z]*(_?[a-zA-Z])*/g;
+    let pattern = /(?!r)(?!e)(?!f)(_?[a-zA-Z0-9]+:?)+[a-zA-Z0-9]*(_?[a-zA-Z0-9])*/g;
     checkPath(pattern,textDocument, diagnostics);
 
     if(!hasSchema(docDir)){
