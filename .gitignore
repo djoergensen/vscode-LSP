@@ -5,8 +5,4 @@ node_modules/
 p4ignore.txt
 client/testFixture
 server/src/*.js
-<<<<<<< HEAD
-client/src/test
-=======
 .DS_Store
->>>>>>> development
