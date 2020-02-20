@@ -8,7 +8,6 @@ import {buildApplicationSource, loadSchema, hasSchema} from "./build";
 import {buildApplicationSourcePostitions} from "./positions";
 import log = require('fancy-log');
 import Ajv = require('Ajv');
-import {performance} from 'perf_hooks';
 
 
 // Connect to the server
