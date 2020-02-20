@@ -2,8 +2,7 @@ import {join, dirname, normalize, basename} from "path";
 import * as _ from 'lodash';
 import {positionParse} from "./parser";
 import log = require('fancy-log');
-const chalk = require("chalk");
-const fs = require('fs');
+import * as fs from 'fs';
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
@@ -52,7 +51,7 @@ export function buildApplicationSourcePostitions(dirPath: string) {
   
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
   const application = resolveJsonRefs(applicationJsonPath, true);
-  log(`Loaded application with positions from ${chalk.green(applicationJsonPath)}`);
+  log(`Loaded application with positions from ${applicationJsonPath}`);
   return application;
 }
   
@@ -121,9 +120,9 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
   try {
     JSON.parse(fs.readFileSync(filename, 'utf8'));
   } catch (e) {
-    console.error(chalk.white.bgRed.bold('--------------------------------------------'));
-    console.error(chalk.white.bgRed.bold(`Syntax Error in ${filename}`));
-    console.error(chalk.white.bgRed.bold(e));
-    console.error(chalk.white.bgRed.bold('--------------------------------------------'));
+    console.error('--------------------------------------------');
+    console.error(`Syntax Error in ${filename}`);
+    console.error(e);
+    console.error('--------------------------------------------');
   }
 }

@@ -1,8 +1,7 @@
 import log = require('fancy-log');
 import {join, dirname, normalize, basename} from "path";
 import * as _ from 'lodash';
-const chalk = require("chalk");
-const fs = require('fs');
+import * as fs from 'fs';
 
 function getFiles(dir:string, fileList:string[], fileName:string){
   fileList = fileList || [];
@@ -93,7 +92,7 @@ export function buildApplicationSource(dirPath: string) {
 function doLoadApplication(applicationJsonPath: string): any /* IApplicationConfiguration */ {
     const application = resolveJsonRefs(applicationJsonPath, true);
     application['terms'] = {};
-    log(`Loaded application from ${chalk.green(applicationJsonPath)}`);
+    log(`Loaded application from ${applicationJsonPath}`);
     return application;
 }
 
@@ -104,7 +103,7 @@ function doLoadApplication(applicationJsonPath: string): any /* IApplicationConf
  */
 function resolveJsonRefs(filename: string, stripLocalizationMarkers: boolean): any {
   try {
-    const content = JSON.parse(fs.readFileSync(filename));
+    const content = JSON.parse(fs.readFileSync(filename, 'utf8'));
     return processNode(dirname(filename), content, stripLocalizationMarkers);
   } catch (e) {
     if (e instanceof SyntaxError) {
@@ -160,10 +159,10 @@ function reportSyntaxError(filename: string, e: SyntaxError) {
   try {
     JSON.parse(fs.readFileSync(filename, 'utf8'));
   } catch (e) {
-    log(chalk.white.bgRed.bold('--------------------------------------------'));
-    log(chalk.white.bgRed.bold(`Syntax Error in ${filename}`));
-    log(chalk.white.bgRed.bold(e));
-    log(chalk.white.bgRed.bold('--------------------------------------------'));
+    log('--------------------------------------------');
+    log(`Syntax Error in ${filename}`);
+    log(e);
+    log('--------------------------------------------');
   }
 }
 
@@ -175,6 +174,6 @@ export function loadSchema(path:string): any {
   let schemaPath = normalize(getSchema(path));
   let schemaFileHandle = fs.readFileSync(schemaPath, 'utf-8');
   let schema = JSON.parse(schemaFileHandle);
-  log(`Loaded schema from ${chalk.green(schemaPath)}`);
+  log(`Loaded schema from ${schemaPath}`);
   return schema;
 }

@@ -8,7 +8,7 @@ import {buildApplicationSource, loadSchema, hasSchema} from "./build";
 import {buildApplicationSourcePostitions} from "./positions";
 import log = require('fancy-log');
 import Ajv = require('Ajv');
-const chalk = require("chalk");
+import {performance} from 'perf_hooks';
 
 
 // Connect to the server
@@ -28,7 +28,6 @@ connection.onInitialize((params: InitializeParams)=>{
     hasWorkspaceFolderCapability = !!(capabilities.workspace && !!capabilities.workspace.workspaceFolders);
     hasDiagnosticRelatedInformationCapability = !!(capabilities.textDocument && capabilities.textDocument.publishDiagnostics && capabilities.textDocument.publishDiagnostics.relatedInformation);
 
-
     return {
         capabilities: {
             openClose: true,
@@ -47,11 +46,6 @@ connection.onInitialized(()=> {
             DidChangeConfigurationNotification.type,
             undefined
         );  
-    }
-    if (hasWorkspaceFolderCapability){
-        connection.workspace.onDidChangeWorkspaceFolders(event => {
-            connection.console.log("Workspace folder change event recieved");
-        });
     }
 });
 
@@ -84,20 +78,16 @@ connection.onDidChangeConfiguration(change => {
 documents.onDidClose(e => {
     documentSettings.delete(e.document.uri);
 });
-
+//When a doc is saved perform validation
 documents.onDidSave(doc => {
     validateTextDocument(doc.document);
 });
-
+//When a new doc is opened, perfrom validation
 documents.onDidOpen(doc =>{
     validateTextDocument(doc.document);
 });
 
-/*
-documents.onDidChangeContent(change => {
-    validateTextDocument(change.document);
-});
-*/
+//Finds the correct uri in the annotated application 
 function findTarget(dataPath, application){
     let fileList = dataPath.split(/[.\'\[\]]+/);
     fileList.pop();
@@ -111,6 +101,7 @@ function findTarget(dataPath, application){
     return target;
 }
 
+//Check if the path exists. If not create a diagnostic
 function checkPath(pattern, textDocument, diagnostics){
     let text = textDocument.getText();
     let lines = text.split("\n");
@@ -157,7 +148,8 @@ function checkPath(pattern, textDocument, diagnostics){
     }
 }
 
-
+//Performs the validation on documents by checking for correct path, and validation
+// against the schema with AJV.
 function validateTextDocument(textDocument: TextDocument) {
     let docDir = dirname(normalize(URI.parse(textDocument.uri).fsPath));
     if(!existsSync(docDir)){
@@ -179,6 +171,7 @@ function validateTextDocument(textDocument: TextDocument) {
     if (!application){
         return null;
     }
+    
     let position_app = buildApplicationSourcePostitions(docDir);
     if (!position_app){
         return null;
@@ -189,15 +182,12 @@ function validateTextDocument(textDocument: TextDocument) {
     const validator = ajv.compile(schema);
     const validation = validator(application);
     if (validation === true) {
-        log(chalk.green('Application conforms to the schema'));
+        log('Application conforms to the schema');
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
     } else {
-        log(`There were ${chalk.red('errors')} validating the application against the schema:`);
-        // pretty printing the error object
+        log(`There were ${'errors'} validating the application against the schema:`);
         for (const err of validator.errors) {
-            log(chalk.red(`- ${err.dataPath || '.'} ${err.message}`));
-            //log(err.parentSchema);
-            //log(err.schemaPath);
+            log(`- ${err.dataPath || '.'} ${err.message}`);            
 
             let target = findTarget(err.dataPath, position_app);
             if (!target){continue;}
@@ -230,7 +220,14 @@ function validateTextDocument(textDocument: TextDocument) {
         sendDiagnostics(diagnostics);
     }
 }
+
+//Send diagnostics only to the docs from the annotated application
 function sendDiagnostics(diagnostics:Diagnostic[]){
+    if (diagnostics.length == 0){
+        clearDiagnostics();
+        return null;
+    }
+    clearDiagnostics();
     diagnostics.sort(compare);
     let startUri = diagnostics[0].relatedInformation[0].location.uri;
     let tempDiagnostics: Diagnostic[] = [];
@@ -247,7 +244,17 @@ function sendDiagnostics(diagnostics:Diagnostic[]){
     connection.sendDiagnostics({uri:startUri, diagnostics:tempDiagnostics});
 }
 
+//Clear diagnostics for all docs
+function clearDiagnostics(){
+    let dia: Diagnostic[] = [];
 
+    documents.all().forEach(doc => {
+        connection.sendDiagnostics({uri:doc.uri, diagnostics: dia});
+    });
+}
+
+
+//Sort errors by URI
 function compare( a, b ) {
     if ( a.relatedInformation[0].location.uri < b.relatedInformation[0].location.uri ){
       return -1;
@@ -257,10 +264,6 @@ function compare( a, b ) {
     }
     return 0;
 }
-
-connection.onDidChangeWatchedFiles(change => {
-    connection.console.log("We recieved an file change event");
-});
 
 
 // Handler for hover
