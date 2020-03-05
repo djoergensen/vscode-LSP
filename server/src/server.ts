@@ -79,8 +79,6 @@ documents.onDidClose(e => {
 //When a doc is saved perform validation
 documents.onDidSave(doc => {
     validateTextDocument(doc.document);
-
-
 });
 //When a new doc is opened, perfrom validation
 documents.onDidOpen(doc =>{
@@ -102,7 +100,7 @@ function findTarget(dataPath, application){
 }
 
 //Check if the path exists. If not create a diagnostic
-async function checkPath(pattern, textDocument, diagnostics){
+async function checkPath(pattern: RegExp, textDocument: TextDocument, diagnostics: Diagnostic[]){
     let text = textDocument.getText();
     let lines = text.split("\n");
     let m: RegExpExecArray | null;
@@ -159,7 +157,7 @@ async function validateTextDocument(textDocument: TextDocument) {
 
     let diagnostics: Diagnostic[] = [];
 
-    let pattern = /(?!r)(?!e)(?!f)(_?[a-zA-Z0-9]+:?)+[a-zA-Z0-9]*(_?[a-zA-Z0-9])*/g;
+    let pattern: RegExp = /(?!r)(?!e)(?!f)(_?[a-zA-Z0-9]+:?)+[a-zA-Z0-9]*(_?[a-zA-Z0-9])*/g;
     await checkPath(pattern,textDocument, diagnostics);
 
     if(!hasSchema(docDir)){
