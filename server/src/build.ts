@@ -80,7 +80,7 @@ function getApplication(dir:string){
 }
 
 
-export function buildApplicationSource(dirPath: string) {
+export async function buildApplicationSource(dirPath: string) {
     const applicationJsonPath = getApplication(dirPath);
     if (!applicationJsonPath){
       return null;

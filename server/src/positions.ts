@@ -40,7 +40,7 @@ function getApplication(dir:string){
 }
 
 
-export function buildApplicationSourcePostitions(dirPath: string) {
+export async function buildApplicationSourcePostitions(dirPath: string) {
   const applicationJsonPath = getApplication(dirPath);
   if(!applicationJsonPath){
     return null;

@@ -9,7 +9,6 @@ import {buildApplicationSourcePostitions} from "./positions";
 import log = require('fancy-log');
 import Ajv = require('Ajv');
 
-
 // Connect to the server
 let connection =  createConnection(ProposedFeatures.all);
 
@@ -80,6 +79,8 @@ documents.onDidClose(e => {
 //When a doc is saved perform validation
 documents.onDidSave(doc => {
     validateTextDocument(doc.document);
+
+
 });
 //When a new doc is opened, perfrom validation
 documents.onDidOpen(doc =>{
@@ -101,7 +102,7 @@ function findTarget(dataPath, application){
 }
 
 //Check if the path exists. If not create a diagnostic
-function checkPath(pattern, textDocument, diagnostics){
+async function checkPath(pattern, textDocument, diagnostics){
     let text = textDocument.getText();
     let lines = text.split("\n");
     let m: RegExpExecArray | null;
@@ -147,9 +148,10 @@ function checkPath(pattern, textDocument, diagnostics){
     }
 }
 
+
 //Performs the validation on documents by checking for correct path, and validation
 // against the schema with AJV.
-function validateTextDocument(textDocument: TextDocument) {
+async function validateTextDocument(textDocument: TextDocument) {
     let docDir = dirname(normalize(URI.parse(textDocument.uri).fsPath));
     if(!existsSync(docDir)){
         return null;
@@ -158,7 +160,7 @@ function validateTextDocument(textDocument: TextDocument) {
     let diagnostics: Diagnostic[] = [];
 
     let pattern = /(?!r)(?!e)(?!f)(_?[a-zA-Z0-9]+:?)+[a-zA-Z0-9]*(_?[a-zA-Z0-9])*/g;
-    checkPath(pattern,textDocument, diagnostics);
+    await checkPath(pattern,textDocument, diagnostics);
 
     if(!hasSchema(docDir)){
         connection.sendDiagnostics({uri:textDocument.uri, diagnostics});
@@ -166,12 +168,12 @@ function validateTextDocument(textDocument: TextDocument) {
         return null;
     }
 
-    let application = buildApplicationSource(docDir);
+    let application = await buildApplicationSource(docDir);
     if (!application){
         return null;
     }
     
-    let position_app = buildApplicationSourcePostitions(docDir);
+    let position_app = await buildApplicationSourcePostitions(docDir);
     if (!position_app){
         return null;
     }
@@ -186,7 +188,7 @@ function validateTextDocument(textDocument: TextDocument) {
     } else {
         log(`There were ${'errors'} validating the application against the schema:`);
         for (const err of validator.errors) {
-            log(`- ${err.dataPath || '.'} ${err.message}`);            
+            log(`- ${err.dataPath || '.'} ${err.message}`);    
 
             let target = findTarget(err.dataPath, position_app);
             if (!target){continue;}
@@ -216,17 +218,17 @@ function validateTextDocument(textDocument: TextDocument) {
             }   
             diagnostics.push(diagnostic);            
         }
-        sendDiagnostics(diagnostics);
+        await sendDiagnostics(diagnostics);
     }
 }
 
 //Send diagnostics only to the docs from the annotated application
-function sendDiagnostics(diagnostics:Diagnostic[]){
+async function sendDiagnostics(diagnostics:Diagnostic[]){
     if (diagnostics.length == 0){
-        clearDiagnostics();
+        await clearDiagnostics();
         return null;
     }
-    clearDiagnostics();
+    await clearDiagnostics();
     diagnostics.sort(compare);
     let startUri = diagnostics[0].relatedInformation[0].location.uri;
     let tempDiagnostics: Diagnostic[] = [];
@@ -244,7 +246,7 @@ function sendDiagnostics(diagnostics:Diagnostic[]){
 }
 
 //Clear diagnostics for all docs
-function clearDiagnostics(){
+async function clearDiagnostics(){
     let dia: Diagnostic[] = [];
 
     documents.all().forEach(doc => {
