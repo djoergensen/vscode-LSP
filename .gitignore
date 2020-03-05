@@ -6,3 +6,4 @@ p4ignore.txt
 client/testFixture
 server/src/*.js
 .DS_Store
+.ionide
