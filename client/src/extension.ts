@@ -1,8 +1,8 @@
-import {ExtensionContext, workspace, window} from 'vscode';
-import {join} from "path";
-import {LanguageClient, LanguageClientOptions, ServerOptions, TransportKind} from "vscode-languageclient";
+import { ExtensionContext, workspace, window } from 'vscode';
+import { join } from "path";
+import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
 
-let client : LanguageClient;
+let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
 
@@ -10,12 +10,12 @@ export function activate(context: ExtensionContext) {
 		join("server", "out", "server.js")
 	);
 
-	
 
-	let debugOptions = {execArgv:["--nolazy", "--inspect=6009"]};
+
+	let debugOptions = { execArgv: ["--nolazy", "--inspect=6009"] };
 
 	let serverOptions: ServerOptions = {
-		run: {module: serverModule, transport: TransportKind.ipc},
+		run: { module: serverModule, transport: TransportKind.ipc },
 		debug: {
 			module: serverModule,
 			transport: TransportKind.ipc,
@@ -24,7 +24,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	let clientOptions: LanguageClientOptions = {
-		documentSelector: [{scheme: "file", language: "json"}],
+		documentSelector: [{ scheme: "file", language: "json" }],
 		synchronize: {
 			fileEvents: workspace.createFileSystemWatcher("**/.clientrc")
 		}
@@ -36,11 +36,11 @@ export function activate(context: ExtensionContext) {
 		serverOptions.debug,
 		clientOptions
 	);
-	
+
 	client.onReady().then(() => {
 		client.onNotification("custom/hasSchema", (file: string) => {
-			window.showErrorMessage("No schema.json found for: " + file + 
-			" vscode-lsp plugin will have limitied functionality");
+			window.showErrorMessage("No schema.json found for: " + file +
+				" vscode-lsp plugin will have limitied functionality");
 		});
 	});
 
@@ -51,7 +51,7 @@ export function activate(context: ExtensionContext) {
 // Called when extension is closed
 export function deactivate(): Thenable<void> {
 	if (!client) {
-	  return undefined;
+		return undefined;
 	}
 	return client.stop();
 }
