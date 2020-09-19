@@ -7,7 +7,7 @@
 			"request": "launch",
 			"name": "Launch Client",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+			"args": ["--extensionDevelopmentPath=${workspaceFolder}", "--disable-extensions"],
 			"outFiles": ["${workspaceFolder}/client/out/**/*.js"],
 			"preLaunchTask": {
 				"type": "npm",
@@ -30,7 +30,8 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/client/out/test",
-				"${workspaceFolder}/client/testFixture"
+				"${workspaceFolder}/client/testFixture",
+				"--disable-extensions"
 			],
 			"outFiles": ["${workspaceFolder}/client/out/test/**/*.js"],
 			"preLaunchTask": {
