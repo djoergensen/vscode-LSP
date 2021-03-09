@@ -3,7 +3,7 @@ Vscode-LSP is a Language server + client for Visual Studio Code, that enables ba
 
 ## Start using Vscode-LSP
 
-Vscode-LSP is published in the Visual Studio Marketplace, and can be found using the keyword "Deltek" or "json lsp". Click the install button, and when you open a folder containing an "application.json" file somewhere in its path, the extension will become active.
+Vscode-LSP is published in the Visual Studio Marketplace, and can be found using the keywords "json lsp". Click the install button, and when you open a folder containing an "application.json" file somewhere in its path, the extension will become active.
 
 ## Features
 Once you open a .json file in a workspace folder containing a "application.json" file, the extionsion will activate.
